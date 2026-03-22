@@ -6,20 +6,26 @@ const router = express.Router();
 // Get all torneos (public)
 router.get('/', async (req, res) => {
   try {
+    console.log('🔍 GET /api/torneos - Fetching all torneos');
     const { estado, modalidad } = req.query;
     const filter = {};
     
     if (estado) filter.estado = estado;
     if (modalidad) filter.modalidad = modalidad;
     
+    console.log('📋 Filter:', filter);
+    
     const torneos = await Torneo.find(filter)
       .sort({ createdAt: -1 })
       .populate('bracket.main.registroId', 'teamName players.nick category registeredAt')
       .populate('bracket.waitlist.registroId', 'teamName players.nick category registeredAt');
     
+    console.log('✅ Found torneos:', torneos.length);
+    console.log('📝 Torneos:', JSON.stringify(torneos, null, 2));
+    
     res.json(torneos);
   } catch (error) {
-    console.error('Get torneos error:', error);
+    console.error('❌ Get torneos error:', error);
     res.status(500).json({ error: 'Server error fetching torneos' });
   }
 });
