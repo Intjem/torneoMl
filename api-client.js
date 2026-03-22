@@ -189,6 +189,11 @@ class SocketClient {
   }
 
   connect() {
+    // WebSocket deshabilitado temporalmente para evitar errores de CORS
+    console.log('🔌 WebSocket disabled temporarily to avoid CORS issues');
+    return;
+    
+    /* Código original comentado
     if (this.socket) return;
 
     // Usar la misma lógica de detección de producción
@@ -199,6 +204,7 @@ class SocketClient {
 
     console.log('🔌 SocketClient connecting to:', baseURL);
     this.socket = io(baseURL);
+    */
 
     this.socket.on('connect', () => {
       console.log('🔌 Connected to server');
