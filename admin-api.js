@@ -70,13 +70,19 @@
   // Estado de la aplicación
   function updateUIState() {
     const isLoggedIn = window.apiClient.isAuthenticated();
+    console.log('🔐 updateUIState - isLoggedIn:', isLoggedIn);
+    console.log('🔐 updateUIState - token:', window.apiClient.token);
     
     elements.loginBox.hidden = isLoggedIn;
+    elements.setupBox.hidden = true; // Siempre oculto al inicio
     elements.panel.hidden = !isLoggedIn;
     elements.btnLogout.hidden = !isLoggedIn;
     
     if (isLoggedIn) {
+      console.log('🔐 User is logged in, loading admin data...');
       loadAdminData();
+    } else {
+      console.log('🔐 User not logged in, showing login');
     }
   }
 
@@ -117,8 +123,11 @@
 
   // Setup inicial
   async function handleSetup() {
+    console.log('🔧 Creating admin...');
     const email = elements.setupEmail.value.trim();
     const password = elements.setupPwd.value;
+
+    console.log('🔧 Setup data:', { email, passwordLength: password?.length });
 
     if (!email || !password) {
       elements.setupErr.textContent = "Email y contraseña son requeridos";
@@ -134,8 +143,10 @@
       elements.btnCreateAdmin.disabled = true;
       elements.setupErr.textContent = "";
 
+      console.log('🔧 Calling API setup...');
       await window.apiClient.setupAdmin(email, password);
       
+      console.log('✅ Admin created successfully');
       elements.setupErr.textContent = "";
       elements.setupErr.style.color = "var(--success)";
       elements.setupErr.textContent = "✅ Administrador creado. Ahora puedes hacer login.";
@@ -146,6 +157,7 @@
       }, 3000);
       
     } catch (error) {
+      console.error('❌ Error creating admin:', error);
       elements.setupErr.textContent = error.message || "Error creando administrador";
       elements.setupErr.style.color = "var(--danger)";
     } finally {
