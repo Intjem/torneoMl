@@ -1,10 +1,18 @@
 // Cliente API para comunicación con el backend
 class ApiClient {
   constructor() {
-    this.baseURL = process.env.NODE_ENV === 'production' 
+    // Detectar si estamos en producción por la URL
+    const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+    this.baseURL = isProduction 
       ? 'https://torneoml.onrender.com' 
       : 'http://localhost:3001';
     this.token = localStorage.getItem('adminToken');
+    
+    console.log('🌐 ApiClient initialized:', { 
+      isProduction, 
+      baseURL: this.baseURL,
+      hostname: window.location.hostname 
+    });
   }
 
   // Métodos HTTP genéricos
@@ -183,10 +191,13 @@ class SocketClient {
   connect() {
     if (this.socket) return;
 
-    const baseURL = process.env.NODE_ENV === 'production' 
+    // Usar la misma lógica de detección de producción
+    const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+    const baseURL = isProduction 
       ? 'https://torneoml.onrender.com' 
       : 'http://localhost:3001';
 
+    console.log('🔌 SocketClient connecting to:', baseURL);
     this.socket = io(baseURL);
 
     this.socket.on('connect', () => {
