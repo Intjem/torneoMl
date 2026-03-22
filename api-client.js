@@ -2,7 +2,7 @@
 class ApiClient {
   constructor() {
     this.baseURL = process.env.NODE_ENV === 'production' 
-      ? 'https://tu-backend.onrender.com' 
+      ? 'https://torneoml.onrender.com' 
       : 'http://localhost:3001';
     this.token = localStorage.getItem('adminToken');
   }
@@ -184,7 +184,7 @@ class SocketClient {
     if (this.socket) return;
 
     const baseURL = process.env.NODE_ENV === 'production' 
-      ? 'https://tu-backend.onrender.com' 
+      ? 'https://torneoml.onrender.com' 
       : 'http://localhost:3001';
 
     this.socket = io(baseURL);

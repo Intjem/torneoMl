@@ -23,7 +23,10 @@ const io = new Server(server, {
 // Middleware
 app.use(helmet());
 app.use(cors({
-  origin: process.env.FRONTEND_URL || "http://localhost:3000",
+  origin: [
+    process.env.FRONTEND_URL || "http://localhost:3000",
+    "https://torneo-ml.vercel.app"
+  ],
   credentials: true
 }));
 
