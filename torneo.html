@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0b0f18" />
+  <title>Torneos — Magic Chezz</title>
+  <link rel="stylesheet" href="styles-simple.css" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="topbar__brand" href="index.html">← Magic <span>Chezz</span></a>
+    <nav class="topbar__nav">
+      <a class="topbar__link" href="registro-equipos.html">Registro</a>
+    </nav>
+  </header>
+
+  <div class="wrap wrap--wide" id="torneoRoot">
+    <div id="torneoListView">
+      <h1>Torneos</h1>
+      <p class="lead">Elige un torneo para ver quién está inscrito en cada modalidad.</p>
+      <p class="hint" id="torneoListEmpty" hidden>No hay torneos programados todavía.</p>
+      <ul class="torneo-public-list" id="torneoPublicCards"></ul>
+    </div>
+
+    <div id="torneoDetailView" hidden>
+      <p class="muted" style="margin-bottom: 0.5rem">
+        <a href="torneo.html">← Todos los torneos</a>
+      </p>
+      <div class="card">
+        <p class="card__tag">Torneo</p>
+        <h1 class="card__title" id="detailTitle">—</h1>
+        <p class="muted" id="detailWhen">—</p>
+        <p class="torneo-estado-line" id="detailEstado" aria-live="polite"></p>
+        <p class="muted" id="detailFormatoMod" style="margin-top: 0.35rem"></p>
+      </div>
+      <p class="lead" style="margin-top: 1rem">
+        Inscritos por <strong>clasificación</strong> (modalidad). Los datos son los enviados en el registro.
+      </p>
+      <div id="clasifSections"></div>
+      <div id="bracketPublicWrap" class="card" hidden style="margin-top: 1rem">
+        <h2>Grupo principal y lista de espera (máx. 8)</h2>
+        <p class="muted" id="bracketPublicLead"></p>
+        <div class="bracket-grid bracket-grid--public">
+          <div class="bracket-col">
+            <h3 class="bracket-col__title">Grupo principal</h3>
+            <ul class="bracket-list" id="bracketPublicMain"></ul>
+          </div>
+          <div class="bracket-col">
+            <h3 class="bracket-col__title">Lista de espera</h3>
+            <ul class="bracket-list" id="bracketPublicWait"></ul>
+          </div>
+        </div>
+      </div>
+      <div id="knockoutPublicWrap" class="card" hidden style="margin-top: 1rem">
+        <h2>Llaves (eliminatoria)</h2>
+        <p class="muted" id="knockoutPublicLead"></p>
+        <div id="knockoutPublicTree" class="knockout-tree knockout-tree--public"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="tournament.js"></script>
+  <script src="torneo.js"></script>
+</body>
+</html>

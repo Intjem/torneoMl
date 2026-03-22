@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0b0f18" />
+  <title>Registro de equipos — Magic Chezz</title>
+  <link rel="stylesheet" href="styles-simple.css" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="topbar__brand" href="index.html">← Magic <span>Chezz</span></a>
+    <nav class="topbar__nav">
+      <a class="topbar__link" href="index.html">Inicio</a>
+      <a class="topbar__link" href="torneo.html">Torneos</a>
+      <a class="topbar__link" href="admin.html">Admin</a>
+    </nav>
+  </header>
+
+  <div class="wrap wrap--wide">
+    <h1>Registro de equipos</h1>
+    <p class="lead">
+      Primero elige la <strong>categoría</strong> de tu inscripción. Solo verás <strong>torneos que aceptan esa modalidad</strong> (el admin configura Liga o Eliminatoria y si es Individual, 1v1, 2v2 o 4v4).
+      Luego completa <strong>ID ML</strong>, <strong>nick</strong> y un <strong>capitán</strong> con <strong>celular</strong>.
+    </p>
+
+    <p class="hint" id="regTorneosHint" role="status" hidden></p>
+
+    <form id="registryForm" class="card" novalidate>
+      <div class="field">
+        <label for="regCategory">Categoría de inscripción</label>
+        <select id="regCategory" name="category" required>
+          <option value="individual">Individual (todos contra todos)</option>
+          <option value="1v1">1v1 (un jugador por inscripción)</option>
+          <option value="2v2">2v2 (dúo — 2 jugadores)</option>
+          <option value="4v4">4v4 (torneo de equipos)</option>
+        </select>
+        <p class="hint" id="categoryHint"></p>
+      </div>
+
+      <div class="field">
+        <label for="regTorneo">Torneo</label>
+        <select id="regTorneo" name="torneoId" required></select>
+        <p class="hint" id="regTorneoFilterHint">
+          La lista se filtra según la categoría elegida arriba.
+        </p>
+      </div>
+
+      <div class="field" id="teamNameWrap" hidden>
+        <label for="teamName">Nombre del equipo <span class="muted">(opcional)</span></label>
+        <input type="text" id="teamName" name="teamName" maxlength="100" placeholder="Ej. Los del barrio" />
+      </div>
+
+      <fieldset class="reg-fieldset">
+        <legend id="titularLegend">Jugadores</legend>
+        <div id="playerFields" class="reg-player-fields"></div>
+      </fieldset>
+
+      <div class="field">
+        <label for="captainPhone">Teléfono del capitán</label>
+        <input
+          type="tel"
+          id="captainPhone"
+          name="captainPhone"
+          inputmode="tel"
+          autocomplete="tel"
+          maxlength="20"
+          placeholder="Ej. +52 55 1234 5678"
+          required
+        />
+        <p class="hint">Solo el capitán debe completar este dato.</p>
+      </div>
+
+      <p class="hint" id="regMsg" role="status"></p>
+      <button type="submit" class="btn btn--primary btn--block" id="btnSubmitReg">Guardar inscripción</button>
+    </form>
+
+    <p class="muted" style="margin-top: 1.25rem">
+      Los datos se guardan en este navegador (<code>localStorage</code>). El administrador puede verlos en el panel Admin.
+    </p>
+  </div>
+
+  <script src="tournament.js"></script>
+  <script src="registro-equipos.js"></script>
+</body>
+</html>

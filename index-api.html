@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0b0f18" />
+  <title>Magic Chezz — Torneos MLBB</title>
+  <link rel="stylesheet" href="styles-simple.css" />
+  <!-- Socket.io para WebSocket -->
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <span class="topbar__brand">Magic <span>Chezz</span></span>
+  </header>
+
+  <main class="landing">
+    <div class="landing__logo" aria-hidden="true">⚔</div>
+    <h1>Torneos Mobile Legends</h1>
+    <p class="landing__sub">Registro e inscripciones, vista pública de torneos y panel de administración.</p>
+    <div class="landing__btns">
+      <a class="btn btn--primary" href="torneo-api.html">Ver torneos e inscritos</a>
+      <a class="btn btn--ghost" href="registro-equipos-api.html">Registro de equipos</a>
+      <a class="btn btn--ghost" href="admin-api.html">Panel administrador</a>
+    </div>
+    <p class="muted" style="margin-top: 2rem; max-width: 32ch">
+      Sistema en línea con actualizaciones en tiempo real. Los datos se guardan en la nube.
+    </p>
+    <div class="card" style="margin-top: 2rem; max-width: 400px; margin-left: auto; margin-right: auto;">
+      <h3>🌐 Estado del Sistema</h3>
+      <p id="systemStatus" class="muted">Verificando conexión...</p>
+      <div id="statusDetails" style="font-size: 0.85rem; margin-top: 0.5rem;"></div>
+    </div>
+  </main>
+
+  <script src="api-client.js"></script>
+  <script src="tournament-api.js"></script>
+  <script>
+    // Verificar estado del sistema
+    async function checkSystemStatus() {
+      const statusEl = document.getElementById('systemStatus');
+      const detailsEl = document.getElementById('statusDetails');
+      
+      try {
+        // Verificar API
+        const response = await fetch(window.apiClient.baseURL + '/health');
+        const health = await response.json();
+        
+        statusEl.textContent = '✅ Sistema en línea';
+        statusEl.style.color = '#4CAF50';
+        
+        detailsEl.innerHTML = `
+          <div>🔗 API: ${health.status}</div>
+          <div>🕐 Última verificación: ${new Date(health.timestamp).toLocaleTimeString()}</div>
+          <div>🔌 WebSocket: ${window.socketClient.connected ? 'Conectado' : 'Desconectado'}</div>
+        `;
+      } catch (error) {
+        statusEl.textContent = '❌ Sistema fuera de línea';
+        statusEl.style.color = '#f44336';
+        
+        detailsEl.innerHTML = `
+          <div>Error: ${error.message}</div>
+          <div>Verifica tu conexión a internet</div>
+        `;
+      }
+    }
+
+    // Verificar estado cada 30 segundos
+    checkSystemStatus();
+    setInterval(checkSystemStatus, 30000);
+
+    // Escuchar eventos de WebSocket
+    window.socketClient.on('connect', () => {
+      console.log('🔌 Conectado al servidor');
+      checkSystemStatus();
+    });
+
+    window.socketClient.on('disconnect', () => {
+      console.log('🔌 Desconectado del servidor');
+      checkSystemStatus();
+    });
+  </script>
+</body>
+</html>
