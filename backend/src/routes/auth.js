@@ -10,34 +10,30 @@ router.post('/login', async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required' });
+      return res.status(400).json({ error: 'Email y contraseña son requeridos' });
     }
 
-    // Find admin by email
     const admin = await Admin.findOne({ email: email.toLowerCase() });
     if (!admin) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+      return res.status(401).json({ error: 'Credenciales inválidas' });
     }
 
-    // Check password
     const isMatch = await admin.comparePassword(password);
     if (!isMatch) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+      return res.status(401).json({ error: 'Credenciales inválidas' });
     }
 
-    // Update last login
     admin.lastLogin = new Date();
     await admin.save();
 
-    // Generate JWT
     const token = jwt.sign(
       { id: admin._id, email: admin.email },
-      process.env.JWT_SECRET,
+      process.env.JWT_SECRET || 'fallback_secret_change_me',
       { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
     );
 
     res.json({
-      message: 'Login successful',
+      message: 'Login exitoso',
       token,
       admin: {
         id: admin._id,
@@ -48,7 +44,7 @@ router.post('/login', async (req, res) => {
     });
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ error: 'Server error during login' });
+    res.status(500).json({ error: 'Error del servidor' });
   }
 });
 
@@ -64,27 +60,30 @@ router.get('/me', auth, async (req, res) => {
   });
 });
 
-// Logout (client-side only, but we can track it)
+// Logout
 router.post('/logout', auth, async (req, res) => {
-  res.json({ message: 'Logout successful' });
+  res.json({ message: 'Logout exitoso' });
 });
 
-// Create initial admin (for setup)
+// Create initial admin — PROTECTED: only works if NO admins exist
 router.post('/setup', async (req, res) => {
   try {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required' });
+      return res.status(400).json({ error: 'Email y contraseña son requeridos' });
     }
 
-    // Check if admin already exists
-    const existingAdmin = await Admin.findOne({ email: email.toLowerCase() });
-    if (existingAdmin) {
-      return res.status(400).json({ error: 'Admin already exists' });
+    if (password.length < 4) {
+      return res.status(400).json({ error: 'La contraseña debe tener al menos 4 caracteres' });
     }
 
-    // Create new admin
+    // Security: only allow setup if no admins exist
+    const adminCount = await Admin.countDocuments();
+    if (adminCount > 0) {
+      return res.status(403).json({ error: 'Ya existe un administrador. Usa el login.' });
+    }
+
     const admin = new Admin({
       email: email.toLowerCase(),
       password
@@ -93,7 +92,7 @@ router.post('/setup', async (req, res) => {
     await admin.save();
 
     res.status(201).json({
-      message: 'Admin created successfully',
+      message: 'Administrador creado exitosamente',
       admin: {
         id: admin._id,
         email: admin.email,
@@ -102,7 +101,7 @@ router.post('/setup', async (req, res) => {
     });
   } catch (error) {
     console.error('Setup error:', error);
-    res.status(500).json({ error: 'Server error during setup' });
+    res.status(500).json({ error: 'Error del servidor' });
   }
 });
 
@@ -112,28 +111,27 @@ router.put('/change-password', auth, async (req, res) => {
     const { currentPassword, newPassword } = req.body;
 
     if (!currentPassword || !newPassword) {
-      return res.status(400).json({ error: 'Current and new passwords are required' });
+      return res.status(400).json({ error: 'Ambas contraseñas son requeridas' });
     }
 
     if (newPassword.length < 4) {
-      return res.status(400).json({ error: 'New password must be at least 4 characters long' });
+      return res.status(400).json({ error: 'La nueva contraseña debe tener al menos 4 caracteres' });
     }
 
-    // Get admin with password
     const admin = await Admin.findById(req.admin._id);
     const isMatch = await admin.comparePassword(currentPassword);
-    
+
     if (!isMatch) {
-      return res.status(401).json({ error: 'Current password is incorrect' });
+      return res.status(401).json({ error: 'Contraseña actual incorrecta' });
     }
 
     admin.password = newPassword;
     await admin.save();
 
-    res.json({ message: 'Password changed successfully' });
+    res.json({ message: 'Contraseña actualizada exitosamente' });
   } catch (error) {
     console.error('Change password error:', error);
-    res.status(500).json({ error: 'Server error during password change' });
+    res.status(500).json({ error: 'Error del servidor' });
   }
 });
 

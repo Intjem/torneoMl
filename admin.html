@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0b0f18" />
+  <meta name="description" content="Panel de administración de torneos Mobile Legends — gestión de torneos, inscripciones y brackets." />
   <title>Administrador — Magic Chezz</title>
   <link rel="stylesheet" href="styles-simple.css" />
 </head>
@@ -19,22 +20,52 @@
 
   <div class="wrap wrap--wide">
     <h1>Administración</h1>
-    <p class="lead">Crea <strong>torneos con fecha y hora</strong>, revisa inscripciones, grupo de 8 y llaves. Contraseña por defecto: <code>admin123</code></p>
+    <p class="lead">Crea <strong>torneos con fecha y hora</strong>, revisa inscripciones, grupo de 8 y llaves. Sistema seguro con autenticación.</p>
 
+    <!-- Login -->
     <div class="card login-box" id="loginBox">
-      <h2>Acceso</h2>
+      <h2>Acceso Administrador</h2>
+      <div class="field">
+        <label for="adminEmail">Email</label>
+        <input type="email" id="adminEmail" autocomplete="email" placeholder="admin@torneos-mlbb.com" />
+      </div>
       <div class="field">
         <label for="adminPwd">Contraseña</label>
         <input type="password" id="adminPwd" autocomplete="current-password" />
       </div>
       <p class="hint hint--err" id="pwdErr" role="alert"></p>
       <button type="button" class="btn btn--primary btn--block" id="btnLogin">Entrar</button>
+      <p class="muted" style="margin-top: 1rem; text-align: center;">
+        ¿Primera vez? <a href="#" id="btnShowSetup">Crear administrador</a>
+      </p>
     </div>
 
+    <!-- Setup inicial -->
+    <div class="card login-box" id="setupBox" hidden>
+      <h2>Crear Administrador</h2>
+      <p class="muted">Solo disponible si no hay administradores registrados.</p>
+      <div class="field">
+        <label for="setupEmail">Email del administrador</label>
+        <input type="email" id="setupEmail" autocomplete="email" placeholder="admin@torneos-mlbb.com" />
+      </div>
+      <div class="field">
+        <label for="setupPwd">Contraseña</label>
+        <input type="password" id="setupPwd" autocomplete="new-password" />
+      </div>
+      <p class="hint hint--err" id="setupErr" role="alert"></p>
+      <button type="button" class="btn btn--primary btn--block" id="btnCreateAdmin">Crear Administrador</button>
+      <p class="muted" style="margin-top: 1rem; text-align: center;">
+        <a href="#" id="btnShowLogin">Volver al login</a>
+      </p>
+    </div>
+
+    <!-- Panel Admin -->
     <div class="panel" id="adminPanel" hidden>
+      <!-- Torneos -->
       <div class="card">
         <h2>Torneos programados</h2>
-        <p class="muted">Define <strong>formato</strong> (Liga o Eliminatoria) y <strong>una sola modalidad de inscripción</strong> (Individual, 1v1, 2v2 o 4v4). Así en el registro no se mezclan equipos de 4 con torneos 1v1. La vista pública está en <a href="torneo.html">Ver torneos</a>.</p>
+        <p class="muted">Define <strong>formato</strong> (Liga o Eliminatoria) y <strong>modalidad de inscripción</strong>.</p>
+
         <div class="field">
           <label for="torneoNombre">Nombre del torneo</label>
           <input type="text" id="torneoNombre" maxlength="120" placeholder="Ej. Copa Magic Chezz — julio" />
@@ -72,58 +103,27 @@
         <ul class="torneo-admin-list" id="torneoList"></ul>
       </div>
 
+      <!-- Inscripciones -->
       <div class="card">
         <h2>Inscripciones (registro)</h2>
-        <p class="muted">Altas desde <a href="registro-equipos.html">Registro de equipos</a> (mismo navegador).</p>
+        <p class="muted">Altas desde <a href="registro-equipos.html">Registro de equipos</a>.</p>
         <div class="field">
           <label for="registryFilterTorneo">Mostrar inscripciones del torneo</label>
           <select id="registryFilterTorneo">
             <option value="">Todos</option>
-            <option value="__none__">Sin torneo asignado</option>
           </select>
         </div>
         <p class="hint" id="registryEmpty" hidden>No hay inscripciones guardadas.</p>
         <ul class="registry-list" id="registryList"></ul>
       </div>
 
-      <div class="card" id="bracketIndividualCard" hidden>
-        <h2>Grupo principal y lista de espera (máx. 8)</h2>
-        <p class="muted">
-          Aplica a la <strong>modalidad del torneo</strong> elegida arriba en el filtro: los <strong>primeros 8</strong> inscritos (por fecha de registro) entran al grupo principal; el resto en <strong>lista de espera</strong>.
-          Puedes <strong>sincronizar</strong> con el orden de registro o <strong>mover</strong> inscripciones (modo manual) para reemplazos. En <strong>eliminatoria</strong>, las llaves usan esos 8 del grupo principal.
-        </p>
-        <p class="hint" id="bracketModeHint"></p>
-        <div class="actions" style="margin-bottom: 0.75rem">
-          <button type="button" class="btn btn--primary" id="btnBracketSync">Sincronizar con orden de registro</button>
-        </div>
-        <div class="bracket-grid">
-          <div class="bracket-col">
-            <h3 class="bracket-col__title">Grupo principal (#1–8)</h3>
-            <ul class="bracket-list" id="bracketMainList"></ul>
-            <p class="muted bracket-col__empty" id="bracketMainEmpty" hidden>Nadie en el grupo aún.</p>
-          </div>
-          <div class="bracket-col">
-            <h3 class="bracket-col__title">Lista de espera</h3>
-            <ul class="bracket-list" id="bracketWaitList"></ul>
-            <p class="muted bracket-col__empty" id="bracketWaitEmpty" hidden>Lista vacía.</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="card" id="knockoutAdminCard" hidden>
-        <h2>Llaves eliminatorias (8 participantes)</h2>
-        <p class="muted" id="knockoutAdminLead"></p>
-        <p class="hint" id="knockoutAdminMsg" role="status"></p>
-        <div class="actions" style="margin-bottom: 0.75rem; flex-wrap: wrap">
-          <button type="button" class="btn btn--primary" id="btnKnockoutGenerate">Generar cuadro (orden #1–8 del grupo principal)</button>
-          <button type="button" class="btn btn--ghost" id="btnKnockoutDelete">Borrar llaves</button>
-          <button type="button" class="btn btn--ghost" id="btnKnockoutClearResults">Reiniciar todos los resultados</button>
-        </div>
-        <div id="knockoutAdminTree" class="knockout-tree"></div>
-      </div>
-
+      <!-- Cambiar contraseña -->
       <div class="card">
         <h2>Cambiar contraseña</h2>
+        <div class="field">
+          <label for="currentPwd">Contraseña actual</label>
+          <input type="password" id="currentPwd" autocomplete="current-password" />
+        </div>
         <div class="field">
           <label for="newPwd">Nueva contraseña (mín. 4 caracteres)</label>
           <input type="password" id="newPwd" autocomplete="new-password" />
@@ -134,6 +134,7 @@
     </div>
   </div>
 
+  <script src="api-client.js"></script>
   <script src="tournament.js"></script>
   <script src="admin.js"></script>
 </body>

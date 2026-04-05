@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0b0f18" />
+  <meta name="description" content="Inscribe a tu equipo o jugador en los torneos de Mobile Legends de Magic Chezz." />
   <title>Registro de equipos — Magic Chezz</title>
   <link rel="stylesheet" href="styles-simple.css" />
 </head>
@@ -13,14 +14,13 @@
     <nav class="topbar__nav">
       <a class="topbar__link" href="index.html">Inicio</a>
       <a class="topbar__link" href="torneo.html">Torneos</a>
-      <a class="topbar__link" href="admin.html">Admin</a>
     </nav>
   </header>
 
   <div class="wrap wrap--wide">
     <h1>Registro de equipos</h1>
     <p class="lead">
-      Primero elige la <strong>categoría</strong> de tu inscripción. Solo verás <strong>torneos que aceptan esa modalidad</strong> (el admin configura Liga o Eliminatoria y si es Individual, 1v1, 2v2 o 4v4).
+      Primero elige la <strong>categoría</strong> de tu inscripción. Solo verás <strong>torneos que aceptan esa modalidad</strong>.
       Luego completa <strong>ID ML</strong>, <strong>nick</strong> y un <strong>capitán</strong> con <strong>celular</strong>.
     </p>
 
@@ -76,10 +76,11 @@
     </form>
 
     <p class="muted" style="margin-top: 1.25rem">
-      Los datos se guardan en este navegador (<code>localStorage</code>). El administrador puede verlos en el panel Admin.
+      Los datos se envían al servidor y el administrador puede verlos en el panel Admin.
     </p>
   </div>
 
+  <script src="api-client.js"></script>
   <script src="tournament.js"></script>
   <script src="registro-equipos.js"></script>
 </body>

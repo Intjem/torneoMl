@@ -1,8 +1,6 @@
 const mongoose = require('mongoose');
-const validator = require('validator');
 
 const registroSchema = new mongoose.Schema({
-  // Información básica
   category: {
     type: String,
     enum: ['individual', '1v1', '2v2', '4v4'],
@@ -18,48 +16,49 @@ const registroSchema = new mongoose.Schema({
     trim: true,
     maxlength: 100
   },
-  
-  // Jugadores
+
   players: [{
     mlId: {
       type: String,
       required: true,
-      trim: true
+      trim: true,
+      maxlength: 32
     },
     nick: {
       type: String,
       required: true,
       trim: true,
-      maxlength: 50
+      maxlength: 80
     },
     role: {
       type: String,
-      enum: ['tank', 'fighter', 'assassin', 'mage', 'marksman', 'support'],
-      default: null
+      enum: ['captain', 'player'],
+      default: 'player'
+    },
+    substitute: {
+      type: Boolean,
+      default: false
+    },
+    phone: {
+      type: String,
+      trim: true,
+      maxlength: 20
     }
   }],
-  
-  // Contacto
+
   captainPhone: {
     type: String,
     required: true,
     trim: true,
-    validate: {
-      validator: function(v) {
-        return validator.isMobilePhone(v, 'any', { strictMode: false });
-      },
-      message: 'Número de teléfono no válido'
-    }
+    maxlength: 20
   },
-  
-  // Estado
+
   status: {
     type: String,
     enum: ['pending', 'confirmed', 'cancelled'],
     default: 'pending'
   },
-  
-  // Metadata
+
   registeredAt: {
     type: Date,
     default: Date.now
@@ -70,25 +69,34 @@ const registroSchema = new mongoose.Schema({
   }
 });
 
-// Validar cantidad de jugadores según categoría
+// Validate player count per category (titulares + optional subs)
 registroSchema.pre('save', function(next) {
-  const categoryPlayerCount = {
-    'individual': 1,
-    '1v1': 1,
-    '2v2': 2,
-    '4v4': 4
-  };
-  
-  const expectedCount = categoryPlayerCount[this.category];
-  if (this.players.length !== expectedCount) {
-    const error = new Error(`La categoría ${this.category} requiere ${expectedCount} jugadores`);
-    return next(error);
+  const minPlayers = { individual: 1, '1v1': 1, '2v2': 2, '4v4': 4 };
+  const maxPlayers = { individual: 1, '1v1': 1, '2v2': 2, '4v4': 7 };
+
+  const min = minPlayers[this.category] || 1;
+  const max = maxPlayers[this.category] || 7;
+
+  if (this.players.length < min || this.players.length > max) {
+    return next(new Error(
+      `La categoría ${this.category} requiere entre ${min} y ${max} jugadores, recibió ${this.players.length}`
+    ));
   }
-  
+
+  // Ensure exactly one captain
+  const captains = this.players.filter(p => p.role === 'captain');
+  if (captains.length !== 1) {
+    return next(new Error('Debe haber exactamente un capitán'));
+  }
+
+  // Captain cannot be substitute
+  if (captains[0].substitute) {
+    return next(new Error('El capitán no puede ser suplente'));
+  }
+
   next();
 });
 
-// Índices para mejor rendimiento
 registroSchema.index({ torneoId: 1, registeredAt: 1 });
 registroSchema.index({ category: 1, status: 1 });
 registroSchema.index({ 'players.mlId': 1 });

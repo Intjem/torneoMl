@@ -3,71 +3,52 @@ const Torneo = require('../models/Torneo');
 const auth = require('../middleware/auth');
 const router = express.Router();
 
+// Allowed fields for update (whitelist)
+const TORNEO_UPDATE_FIELDS = [
+  'nombre', 'fecha', 'hora', 'tipoFormato', 'modalidad',
+  'estado', 'descripcion', 'premios', 'reglas'
+];
+
 // Get all torneos (public)
 router.get('/', async (req, res) => {
   try {
-    console.log('🔍 GET /api/torneos - Fetching all torneos');
     const { estado, modalidad } = req.query;
     const filter = {};
-    
+
     if (estado) filter.estado = estado;
     if (modalidad) filter.modalidad = modalidad;
-    
-    console.log('📋 Filter:', filter);
-    
-    const torneos = await Torneo.find(filter)
-      .sort({ createdAt: -1 })
-      .populate('bracket.main.registroId', 'teamName players.nick category registeredAt')
-      .populate('bracket.waitlist.registroId', 'teamName players.nick category registeredAt');
-    
-    console.log('✅ Found torneos:', torneos.length);
-    console.log('📝 Torneos:', JSON.stringify(torneos, null, 2));
-    
+
+    const torneos = await Torneo.find(filter).sort({ createdAt: -1 });
     res.json(torneos);
   } catch (error) {
-    console.error('❌ Get torneos error:', error);
-    res.status(500).json({ error: 'Server error fetching torneos' });
+    console.error('Get torneos error:', error);
+    res.status(500).json({ error: 'Error obteniendo torneos' });
   }
 });
 
 // Get single torneo (public)
 router.get('/:id', async (req, res) => {
   try {
-    const torneo = await Torneo.findById(req.params.id)
-      .populate('bracket.main.registroId', 'teamName players.nick captainPhone category registeredAt')
-      .populate('bracket.waitlist.registroId', 'teamName players.nick captainPhone category registeredAt')
-      .populate('knockoutBracket.rounds.matches.player1', 'teamName players.nick category')
-      .populate('knockoutBracket.rounds.matches.player2', 'teamName players.nick category')
-      .populate('knockoutBracket.rounds.matches.winner', 'teamName players.nick category');
-    
+    const torneo = await Torneo.findById(req.params.id);
+
     if (!torneo) {
-      return res.status(404).json({ error: 'Torneo not found' });
+      return res.status(404).json({ error: 'Torneo no encontrado' });
     }
-    
+
     res.json(torneo);
   } catch (error) {
     console.error('Get torneo error:', error);
-    res.status(500).json({ error: 'Server error fetching torneo' });
+    res.status(500).json({ error: 'Error obteniendo torneo' });
   }
 });
 
 // Create torneo (admin only)
 router.post('/', auth, async (req, res) => {
   try {
-    const {
-      nombre,
-      fecha,
-      hora,
-      tipoFormato,
-      modalidad,
-      descripcion,
-      premios,
-      reglas
-    } = req.body;
+    const { nombre, fecha, hora, tipoFormato, modalidad, descripcion, premios, reglas } = req.body;
 
-    // Validation
     if (!nombre || !fecha || !hora || !tipoFormato || !modalidad) {
-      return res.status(400).json({ error: 'Missing required fields' });
+      return res.status(400).json({ error: 'Faltan campos requeridos' });
     }
 
     const torneo = new Torneo({
@@ -83,55 +64,47 @@ router.post('/', auth, async (req, res) => {
 
     await torneo.save();
 
-    // Emit real-time update
     const io = req.app.get('io');
     io.emit('torneo-created', torneo);
 
-    res.status(201).json({
-      message: 'Torneo created successfully',
-      torneo
-    });
+    res.status(201).json({ message: 'Torneo creado', torneo });
   } catch (error) {
     console.error('Create torneo error:', error);
     if (error.name === 'ValidationError') {
       return res.status(400).json({ error: error.message });
     }
-    res.status(500).json({ error: 'Server error creating torneo' });
+    res.status(500).json({ error: 'Error creando torneo' });
   }
 });
 
-// Update torneo (admin only)
+// Update torneo (admin only) — with field whitelist
 router.put('/:id', auth, async (req, res) => {
   try {
     const torneo = await Torneo.findById(req.params.id);
-    
     if (!torneo) {
-      return res.status(404).json({ error: 'Torneo not found' });
+      return res.status(404).json({ error: 'Torneo no encontrado' });
     }
 
-    const updates = req.body;
-    Object.keys(updates).forEach(key => {
-      if (updates[key] !== undefined) {
-        torneo[key] = updates[key];
+    // Only allow whitelisted fields
+    TORNEO_UPDATE_FIELDS.forEach(key => {
+      if (req.body[key] !== undefined) {
+        torneo[key] = req.body[key];
       }
     });
 
     await torneo.save();
 
-    // Emit real-time update
     const io = req.app.get('io');
     io.to(`torneo-${torneo._id}`).emit('torneo-updated', torneo);
+    io.emit('torneo-list-changed', { id: torneo._id });
 
-    res.json({
-      message: 'Torneo updated successfully',
-      torneo
-    });
+    res.json({ message: 'Torneo actualizado', torneo });
   } catch (error) {
     console.error('Update torneo error:', error);
     if (error.name === 'ValidationError') {
       return res.status(400).json({ error: error.message });
     }
-    res.status(500).json({ error: 'Server error updating torneo' });
+    res.status(500).json({ error: 'Error actualizando torneo' });
   }
 });
 
@@ -139,21 +112,19 @@ router.put('/:id', auth, async (req, res) => {
 router.delete('/:id', auth, async (req, res) => {
   try {
     const torneo = await Torneo.findById(req.params.id);
-    
     if (!torneo) {
-      return res.status(404).json({ error: 'Torneo not found' });
+      return res.status(404).json({ error: 'Torneo no encontrado' });
     }
 
     await Torneo.findByIdAndDelete(req.params.id);
 
-    // Emit real-time update
     const io = req.app.get('io');
     io.emit('torneo-deleted', { id: req.params.id });
 
-    res.json({ message: 'Torneo deleted successfully' });
+    res.json({ message: 'Torneo eliminado' });
   } catch (error) {
     console.error('Delete torneo error:', error);
-    res.status(500).json({ error: 'Server error deleting torneo' });
+    res.status(500).json({ error: 'Error eliminando torneo' });
   }
 });
 
@@ -161,30 +132,25 @@ router.delete('/:id', auth, async (req, res) => {
 router.put('/:id/bracket', auth, async (req, res) => {
   try {
     const { bracket } = req.body;
-    
     if (!bracket || !bracket.main || !bracket.waitlist) {
-      return res.status(400).json({ error: 'Invalid bracket data' });
+      return res.status(400).json({ error: 'Datos de bracket inválidos' });
     }
 
     const torneo = await Torneo.findById(req.params.id);
     if (!torneo) {
-      return res.status(404).json({ error: 'Torneo not found' });
+      return res.status(404).json({ error: 'Torneo no encontrado' });
     }
 
     torneo.bracket = bracket;
     await torneo.save();
 
-    // Emit real-time update
     const io = req.app.get('io');
     io.to(`torneo-${torneo._id}`).emit('bracket-updated', torneo);
 
-    res.json({
-      message: 'Bracket updated successfully',
-      torneo
-    });
+    res.json({ message: 'Bracket actualizado', torneo });
   } catch (error) {
     console.error('Update bracket error:', error);
-    res.status(500).json({ error: 'Server error updating bracket' });
+    res.status(500).json({ error: 'Error actualizando bracket' });
   }
 });
 
@@ -192,35 +158,29 @@ router.put('/:id/bracket', auth, async (req, res) => {
 router.post('/:id/knockout', auth, async (req, res) => {
   try {
     const torneo = await Torneo.findById(req.params.id);
-    
     if (!torneo) {
-      return res.status(404).json({ error: 'Torneo not found' });
+      return res.status(404).json({ error: 'Torneo no encontrado' });
     }
 
     if (torneo.tipoFormato !== 'eliminatoria') {
-      return res.status(400).json({ error: 'Torneo must be elimination format' });
+      return res.status(400).json({ error: 'El torneo debe ser formato eliminatoria' });
     }
 
     if (torneo.bracket.main.length !== 8) {
-      return res.status(400).json({ error: 'Bracket must have exactly 8 main players' });
+      return res.status(400).json({ error: 'Se necesitan exactamente 8 participantes en el grupo principal' });
     }
 
-    // Generate knockout bracket
     const knockoutBracket = generateKnockoutBracket(torneo.bracket.main);
     torneo.knockoutBracket = knockoutBracket;
     await torneo.save();
 
-    // Emit real-time update
     const io = req.app.get('io');
     io.to(`torneo-${torneo._id}`).emit('knockout-updated', torneo);
 
-    res.json({
-      message: 'Knockout bracket generated successfully',
-      torneo
-    });
+    res.json({ message: 'Llaves generadas', torneo });
   } catch (error) {
     console.error('Generate knockout error:', error);
-    res.status(500).json({ error: 'Server error generating knockout bracket' });
+    res.status(500).json({ error: 'Error generando llaves' });
   }
 });
 
@@ -228,57 +188,54 @@ router.post('/:id/knockout', auth, async (req, res) => {
 router.put('/:id/knockout/results', auth, async (req, res) => {
   try {
     const { knockoutBracket } = req.body;
-    
+
     const torneo = await Torneo.findById(req.params.id);
     if (!torneo) {
-      return res.status(404).json({ error: 'Torneo not found' });
+      return res.status(404).json({ error: 'Torneo no encontrado' });
     }
 
     torneo.knockoutBracket = knockoutBracket;
     await torneo.save();
 
-    // Emit real-time update
     const io = req.app.get('io');
     io.to(`torneo-${torneo._id}`).emit('knockout-results-updated', torneo);
 
-    res.json({
-      message: 'Knockout results updated successfully',
-      torneo
-    });
+    res.json({ message: 'Resultados actualizados', torneo });
   } catch (error) {
     console.error('Update knockout results error:', error);
-    res.status(500).json({ error: 'Server error updating knockout results' });
+    res.status(500).json({ error: 'Error actualizando resultados' });
   }
 });
 
-// Helper function to generate knockout bracket
+// Helper: generate 8-player single elimination bracket
 function generateKnockoutBracket(mainPlayers) {
-  const rounds = [
-    // Quarterfinals
-    {
-      matches: [
-        { player1: mainPlayers[0].registroId, player2: mainPlayers[1].registroId },
-        { player1: mainPlayers[2].registroId, player2: mainPlayers[3].registroId },
-        { player1: mainPlayers[4].registroId, player2: mainPlayers[5].registroId },
-        { player1: mainPlayers[6].registroId, player2: mainPlayers[7].registroId }
-      ]
-    },
-    // Semifinals
-    {
-      matches: [
-        { player1: null, player2: null }, // Winners will be populated after quarterfinals
-        { player1: null, player2: null }
-      ]
-    },
-    // Final
-    {
-      matches: [
-        { player1: null, player2: null }
-      ]
-    }
-  ];
-
-  return { rounds };
+  const s = mainPlayers.map(p => p.registroId);
+  return {
+    rounds: [
+      {
+        label: 'Cuartos de final',
+        matches: [
+          { player1: s[0], player2: s[7], winner: null, score1: 0, score2: 0, finished: false },
+          { player1: s[3], player2: s[4], winner: null, score1: 0, score2: 0, finished: false },
+          { player1: s[2], player2: s[5], winner: null, score1: 0, score2: 0, finished: false },
+          { player1: s[1], player2: s[6], winner: null, score1: 0, score2: 0, finished: false }
+        ]
+      },
+      {
+        label: 'Semifinales',
+        matches: [
+          { player1: null, player2: null, winner: null, score1: 0, score2: 0, finished: false },
+          { player1: null, player2: null, winner: null, score1: 0, score2: 0, finished: false }
+        ]
+      },
+      {
+        label: 'Final',
+        matches: [
+          { player1: null, player2: null, winner: null, score1: 0, score2: 0, finished: false }
+        ]
+      }
+    ]
+  };
 }
 
 module.exports = router;

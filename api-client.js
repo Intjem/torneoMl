@@ -1,294 +1,147 @@
-// Cliente API para comunicación con el backend
-class ApiClient {
-  constructor() {
-    // Detectar si estamos en producción por la URL
-    const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
-    this.baseURL = isProduction 
-      ? 'https://torneoml.onrender.com' 
-      : 'http://localhost:3001';
-    this.token = localStorage.getItem('adminToken');
-    
-    console.log('🌐 ApiClient initialized:', { 
-      isProduction, 
-      baseURL: this.baseURL,
-      hostname: window.location.hostname 
-    });
-  }
+// API Client for torneos-mlbb backend
+(function(global) {
+  "use strict";
 
-  // Métodos HTTP genéricos
-  async request(endpoint, options = {}) {
-    const url = `${this.baseURL}/api${endpoint}`;
-    const config = {
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-      },
-      ...options
-    };
+  // Detect base URL — same origin when served from Express
+  var baseURL = window.location.origin;
 
-    // Agregar token si existe
-    if (this.token) {
-      config.headers.Authorization = `Bearer ${this.token}`;
+  var token = null;
+  try { token = localStorage.getItem("adminToken"); } catch(e) {}
+
+  function request(endpoint, options) {
+    var url = baseURL + "/api" + endpoint;
+    var config = Object.assign({
+      headers: { "Content-Type": "application/json" }
+    }, options || {});
+
+    if (token) {
+      config.headers = config.headers || {};
+      config.headers.Authorization = "Bearer " + token;
     }
 
-    try {
-      const response = await fetch(url, config);
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'API request failed');
-      }
-
-      return data;
-    } catch (error) {
-      console.error('API Error:', error);
-      throw error;
-    }
+    return fetch(url, config)
+      .then(function(response) {
+        return response.json().then(function(data) {
+          if (!response.ok) {
+            var err = new Error(data.error || "Error del servidor");
+            err.status = response.status;
+            throw err;
+          }
+          return data;
+        });
+      });
   }
 
-  // Métodos específicos
-  async get(endpoint) {
-    return this.request(endpoint);
+  function get(endpoint) {
+    return request(endpoint);
   }
 
-  async post(endpoint, data) {
-    return this.request(endpoint, {
-      method: 'POST',
-      body: JSON.stringify(data)
+  function post(endpoint, data) {
+    return request(endpoint, { method: "POST", body: JSON.stringify(data) });
+  }
+
+  function put(endpoint, data) {
+    return request(endpoint, { method: "PUT", body: JSON.stringify(data) });
+  }
+
+  function del(endpoint) {
+    return request(endpoint, { method: "DELETE" });
+  }
+
+  // Auth
+  function login(email, password) {
+    return post("/auth/login", { email: email, password: password })
+      .then(function(res) {
+        token = res.token;
+        try { localStorage.setItem("adminToken", token); } catch(e) {}
+        return res;
+      });
+  }
+
+  function logout() {
+    return post("/auth/logout").catch(function() {}).then(function() {
+      token = null;
+      try { localStorage.removeItem("adminToken"); } catch(e) {}
     });
   }
 
-  async put(endpoint, data) {
-    return this.request(endpoint, {
-      method: 'PUT',
-      body: JSON.stringify(data)
+  function setupAdmin(email, password) {
+    return post("/auth/setup", { email: email, password: password });
+  }
+
+  function changePassword(currentPassword, newPassword) {
+    return put("/auth/change-password", {
+      currentPassword: currentPassword,
+      newPassword: newPassword
     });
   }
 
-  async delete(endpoint) {
-    return this.request(endpoint, {
-      method: 'DELETE'
-    });
-  }
+  function isAuthenticated() { return !!token; }
 
-  // Autenticación
-  async login(email, password) {
-    const response = await this.post('/auth/login', { email, password });
-    this.token = response.token;
-    localStorage.setItem('adminToken', this.token);
-    return response;
-  }
-
-  async logout() {
-    try {
-      await this.post('/auth/logout');
-    } finally {
-      this.token = null;
-      localStorage.removeItem('adminToken');
-    }
-  }
-
-  async getCurrentAdmin() {
-    return this.get('/auth/me');
-  }
-
-  async changePassword(currentPassword, newPassword) {
-    return this.put('/auth/change-password', { currentPassword, newPassword });
-  }
-
-  async setupAdmin(email, password) {
-    return this.post('/auth/setup', { email, password });
+  function clearToken() {
+    token = null;
+    try { localStorage.removeItem("adminToken"); } catch(e) {}
   }
 
   // Torneos
-  async getTorneos(filters = {}) {
-    const params = new URLSearchParams(filters);
-    return this.get(`/torneos?${params}`);
+  function getTorneos(filters) {
+    var params = filters ? "?" + new URLSearchParams(filters).toString() : "";
+    return get("/torneos" + params);
   }
 
-  async getTorneo(id) {
-    return this.get(`/torneos/${id}`);
+  function getTorneo(id) { return get("/torneos/" + id); }
+
+  function createTorneo(data) { return post("/torneos", data); }
+
+  function updateTorneo(id, data) { return put("/torneos/" + id, data); }
+
+  function deleteTorneo(id) { return del("/torneos/" + id); }
+
+  function updateBracket(id, bracket) {
+    return put("/torneos/" + id + "/bracket", { bracket: bracket });
   }
 
-  async createTorneo(torneoData) {
-    return this.post('/torneos', torneoData);
-  }
+  function generateKnockout(id) { return post("/torneos/" + id + "/knockout"); }
 
-  async updateTorneo(id, torneoData) {
-    return this.put(`/torneos/${id}`, torneoData);
-  }
-
-  async deleteTorneo(id) {
-    return this.delete(`/torneos/${id}`);
-  }
-
-  async updateBracket(id, bracket) {
-    return this.put(`/torneos/${id}/bracket`, { bracket });
-  }
-
-  async generateKnockout(id) {
-    return this.post(`/torneos/${id}/knockout`);
-  }
-
-  async updateKnockoutResults(id, knockoutBracket) {
-    return this.put(`/torneos/${id}/knockout/results`, { knockoutBracket });
+  function updateKnockoutResults(id, knockoutBracket) {
+    return put("/torneos/" + id + "/knockout/results", { knockoutBracket: knockoutBracket });
   }
 
   // Registros
-  async getRegistros(filters = {}) {
-    const params = new URLSearchParams(filters);
-    return this.get(`/registros?${params}`);
+  function getRegistros(filters) {
+    var params = filters ? "?" + new URLSearchParams(filters).toString() : "";
+    return get("/registros" + params);
   }
 
-  async getRegistro(id) {
-    return this.get(`/registros/${id}`);
+  function createRegistro(data) { return post("/registros", data); }
+
+  function deleteRegistro(id) { return del("/registros/" + id); }
+
+  function getRegistrosByTorneo(torneoId) {
+    return get("/registros/torneo/" + torneoId);
   }
 
-  async createRegistro(registroData) {
-    return this.post('/registros', registroData);
-  }
+  // Export
+  global.apiClient = {
+    baseURL: baseURL,
+    isAuthenticated: isAuthenticated,
+    clearToken: clearToken,
+    login: login,
+    logout: logout,
+    setupAdmin: setupAdmin,
+    changePassword: changePassword,
+    getTorneos: getTorneos,
+    getTorneo: getTorneo,
+    createTorneo: createTorneo,
+    updateTorneo: updateTorneo,
+    deleteTorneo: deleteTorneo,
+    updateBracket: updateBracket,
+    generateKnockout: generateKnockout,
+    updateKnockoutResults: updateKnockoutResults,
+    getRegistros: getRegistros,
+    createRegistro: createRegistro,
+    deleteRegistro: deleteRegistro,
+    getRegistrosByTorneo: getRegistrosByTorneo
+  };
 
-  async updateRegistro(id, registroData) {
-    return this.put(`/registros/${id}`, registroData);
-  }
-
-  async deleteRegistro(id) {
-    return this.delete(`/registros/${id}`);
-  }
-
-  async getRegistrosByTorneo(torneoId, category) {
-    const params = category ? `?category=${category}` : '';
-    return this.get(`/registros/torneo/${torneoId}${params}`);
-  }
-
-  async getRegistroStats() {
-    return this.get('/registros/stats/overview');
-  }
-
-  // Verificar si está autenticado
-  isAuthenticated() {
-    return !!this.token;
-  }
-
-  // Limpiar token
-  clearToken() {
-    this.token = null;
-    localStorage.removeItem('adminToken');
-  }
-}
-
-// Instancia global
-window.apiClient = new ApiClient();
-
-// WebSocket para actualizaciones en tiempo real
-class SocketClient {
-  constructor() {
-    this.socket = null;
-    this.connected = false;
-    this.listeners = {};
-  }
-
-  connect() {
-    // WebSocket deshabilitado temporalmente para evitar errores de CORS
-    console.log('🔌 WebSocket disabled temporarily to avoid CORS issues');
-    return;
-    
-    /* Código original comentado
-    if (this.socket) return;
-
-    // Usar la misma lógica de detección de producción
-    const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
-    const baseURL = isProduction 
-      ? 'https://torneoml.onrender.com' 
-      : 'http://localhost:3001';
-
-    console.log('🔌 SocketClient connecting to:', baseURL);
-    this.socket = io(baseURL);
-    */
-
-    this.socket.on('connect', () => {
-      console.log('🔌 Connected to server');
-      this.connected = true;
-    });
-
-    this.socket.on('disconnect', () => {
-      console.log('🔌 Disconnected from server');
-      this.connected = false;
-    });
-
-    // Eventos genéricos
-    this.socket.on('torneo-created', (data) => {
-      this.emit('torneo-created', data);
-    });
-
-    this.socket.on('torneo-updated', (data) => {
-      this.emit('torneo-updated', data);
-    });
-
-    this.socket.on('torneo-deleted', (data) => {
-      this.emit('torneo-deleted', data);
-    });
-
-    this.socket.on('registro-created', (data) => {
-      this.emit('registro-created', data);
-    });
-
-    this.socket.on('registro-updated', (data) => {
-      this.emit('registro-updated', data);
-    });
-
-    this.socket.on('registro-deleted', (data) => {
-      this.emit('registro-deleted', data);
-    });
-
-    this.socket.on('new-registration', (data) => {
-      this.emit('new-registration', data);
-    });
-
-    this.socket.on('registration-deleted', (data) => {
-      this.emit('registration-deleted', data);
-    });
-
-    this.socket.on('bracket-updated', (data) => {
-      this.emit('bracket-updated', data);
-    });
-
-    this.socket.on('knockout-updated', (data) => {
-      this.emit('knockout-updated', data);
-    });
-
-    this.socket.on('knockout-results-updated', (data) => {
-      this.emit('knockout-results-updated', data);
-    });
-  }
-
-  joinTorneo(torneoId) {
-    if (this.socket && this.connected) {
-      this.socket.emit('join-torneo', torneoId);
-    }
-  }
-
-  on(event, callback) {
-    if (!this.listeners[event]) {
-      this.listeners[event] = [];
-    }
-    this.listeners[event].push(callback);
-  }
-
-  emit(event, data) {
-    if (this.listeners[event]) {
-      this.listeners[event].forEach(callback => callback(data));
-    }
-  }
-
-  disconnect() {
-    if (this.socket) {
-      this.socket.disconnect();
-      this.socket = null;
-      this.connected = false;
-    }
-  }
-}
-
-// Instancia global
-window.socketClient = new SocketClient();
+})(typeof window !== "undefined" ? window : this);
