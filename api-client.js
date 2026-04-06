@@ -65,6 +65,10 @@
     });
   }
 
+  function checkSetupStatus() {
+    return get("/auth/status");
+  }
+
   function setupAdmin(email, password) {
     return post("/auth/setup", { email: email, password: password });
   }
@@ -128,6 +132,7 @@
     clearToken: clearToken,
     login: login,
     logout: logout,
+    checkSetupStatus: checkSetupStatus,
     setupAdmin: setupAdmin,
     changePassword: changePassword,
     getTorneos: getTorneos,

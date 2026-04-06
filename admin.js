@@ -55,7 +55,20 @@
     if (setupBox) setupBox.hidden = true;
     if (panel)    panel.hidden = !loggedIn;
     if (btnLogout) btnLogout.hidden = !loggedIn;
-    if (loggedIn) loadAdminData();
+
+    if (loggedIn) {
+      loadAdminData();
+    } else {
+      // Si no estamos logged in, revisar si ya existe un admin para ocultar el link de creación
+      if (api.checkSetupStatus) {
+        api.checkSetupStatus().then(function(res) {
+          var setupHintLine = document.getElementById("setupHintLine");
+          if (setupHintLine) {
+            setupHintLine.hidden = res.hasAdmin;
+          }
+        }).catch(function(){}); // Si falla, que quede visible por defecto
+      }
+    }
   }
 
   // ── Auth ──

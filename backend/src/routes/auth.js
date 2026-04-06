@@ -65,6 +65,16 @@ router.post('/logout', auth, async (req, res) => {
   res.json({ message: 'Logout exitoso' });
 });
 
+// Check if admin setup is done
+router.get('/status', async (req, res) => {
+  try {
+    const adminCount = await Admin.countDocuments();
+    res.json({ hasAdmin: adminCount > 0 });
+  } catch (error) {
+    res.status(500).json({ error: 'Error comprobando estado' });
+  }
+});
+
 // Create initial admin — PROTECTED: only works if NO admins exist
 router.post('/setup', async (req, res) => {
   try {
