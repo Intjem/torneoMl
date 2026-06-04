@@ -3,14 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#0b0f18" />
-  <meta name="description" content="Panel de administración de torneos Mobile Legends — gestión de torneos, inscripciones y brackets." />
-  <title>Administrador — Magic Chezz</title>
+  <meta name="theme-color" content="#100d12" />
+  <meta name="description" content="Panel de administración SK Kings de torneos Mobile Legends — gestión de torneos, inscripciones y brackets." />
+  <title>Administrador — SK Kings</title>
   <link rel="stylesheet" href="styles-simple.css" />
 </head>
 <body>
   <header class="topbar">
-    <a class="topbar__brand" href="index.html">← Magic <span>Chezz</span></a>
+    <a class="topbar__brand" href="index.html" aria-label="SK Kings - Inicio">
+      <img class="brand-logo" src="assets/sk-kings-logo.png" alt="" />
+      <span class="brand-word">SK <span>Kings</span></span>
+    </a>
     <nav class="topbar__nav">
       <a class="topbar__link" href="torneo.html">Torneos</a>
       <a class="topbar__link" href="registro-equipos.html">Registro</a>
@@ -68,7 +71,7 @@
 
         <div class="field">
           <label for="torneoNombre">Nombre del torneo</label>
-          <input type="text" id="torneoNombre" maxlength="120" placeholder="Ej. Copa Magic Chezz — julio" />
+          <input type="text" id="torneoNombre" maxlength="120" placeholder="Ej. Copa SK Kings — julio" />
         </div>
         <div class="row-datetime">
           <div class="field">

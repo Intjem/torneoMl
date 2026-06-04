@@ -1,17 +1,25 @@
-/* Interfaz sencilla — Mobile Legends (oscuro + acentos) */
+/* Interfaz SK Kings - Mobile Legends */
 :root {
-  --bg: #0b0f18;
-  --surface: #141b2a;
-  --border: #2a3548;
-  --text: #e8ecf4;
-  --muted: #8b95a8;
-  --accent: #00c8f0;
-  --accent-dim: rgba(0, 200, 240, 0.12);
-  --gold: #d4a843;
-  --danger: #e85d6c;
-  --radius: 12px;
+  --bg: #100d12;
+  --bg-2: #171016;
+  --surface: #1d151d;
+  --surface-strong: #281b25;
+  --border: rgba(255, 255, 255, 0.13);
+  --text: #fff8f2;
+  --muted: #bbaeb8;
+  --accent: #10d4d4;
+  --accent-strong: #08aecd;
+  --accent-dim: rgba(16, 212, 212, 0.14);
+  --red: #ff2f4f;
+  --orange: #ff6717;
+  --gold: #ffd335;
+  --danger: #ff4965;
+  --ok: #22e18c;
+  --radius: 8px;
   --font: system-ui, "Segoe UI", Roboto, sans-serif;
-  --header-h: 52px;
+  --header-h: 60px;
+  --brand-gradient: linear-gradient(100deg, var(--red), var(--orange) 34%, var(--gold) 52%, var(--accent) 75%, var(--accent-strong));
+  --shadow: 0 18px 40px rgba(0, 0, 0, 0.34);
 }
 
 *,
@@ -31,7 +39,10 @@ body {
   font-size: 1rem;
   line-height: 1.5;
   color: var(--text);
-  background: var(--bg);
+  background:
+    linear-gradient(135deg, rgba(255, 47, 79, 0.16) 0%, rgba(255, 47, 79, 0) 34%),
+    linear-gradient(225deg, rgba(16, 212, 212, 0.16) 0%, rgba(16, 212, 212, 0) 38%),
+    linear-gradient(180deg, #181017 0%, var(--bg) 42%, #0b090d 100%);
 }
 
 a {
@@ -46,21 +57,55 @@ a {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 0.75rem;
   min-height: var(--header-h);
-  padding: 0.5rem 1rem;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
+  padding: 0.45rem clamp(0.85rem, 2.4vw, 1.6rem);
+  background: rgba(16, 12, 17, 0.9);
+  border-bottom: 1px solid transparent;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(14px);
+}
+
+.topbar::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  height: 2px;
+  background: var(--brand-gradient);
 }
 
 .topbar__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 1.05rem;
   color: var(--text);
   text-decoration: none;
+  min-width: 0;
 }
 
-.topbar__brand span {
+.brand-logo {
+  display: block;
+  width: 46px;
+  height: 32px;
+  object-fit: contain;
+  filter: drop-shadow(0 7px 12px rgba(0, 0, 0, 0.35));
+}
+
+.brand-word {
+  display: inline-flex;
+  gap: 0.18rem;
+  align-items: baseline;
+  white-space: nowrap;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.brand-word > span {
   color: var(--gold);
 }
 
@@ -76,14 +121,16 @@ a {
   font-weight: 600;
   color: var(--muted);
   text-decoration: none;
-  padding: 0.35rem 0.5rem;
+  padding: 0.38rem 0.58rem;
   border-radius: 6px;
+  border: 1px solid transparent;
 }
 
 .topbar__link:hover,
 .topbar__link:focus-visible {
   color: var(--text);
   background: var(--accent-dim);
+  border-color: rgba(16, 212, 212, 0.28);
   outline: none;
 }
 
@@ -96,7 +143,7 @@ button.topbar__link {
   width: 100%;
   max-width: 520px;
   margin: 0 auto;
-  padding: 1.25rem 1rem 2rem;
+  padding: 1.5rem 1rem 2.5rem;
 }
 
 .wrap--wide {
@@ -108,7 +155,7 @@ h1 {
   margin: 0 0 0.75rem;
   font-size: 1.5rem;
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
 }
 
 h2 {
@@ -130,11 +177,14 @@ h2 {
 
 /* Tarjetas */
 .card {
-  background: var(--surface);
+  background:
+    linear-gradient(145deg, rgba(255, 47, 79, 0.08), rgba(16, 212, 212, 0.06)),
+    var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 1rem 1.1rem;
   margin-bottom: 1rem;
+  box-shadow: var(--shadow);
 }
 
 .card__tag {
@@ -145,8 +195,9 @@ h2 {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--accent);
-  background: var(--accent-dim);
+  color: var(--gold);
+  background: rgba(255, 211, 53, 0.11);
+  border: 1px solid rgba(255, 211, 53, 0.2);
   border-radius: 6px;
 }
 
@@ -154,7 +205,7 @@ h2 {
   margin: 0 0 0.35rem;
   font-size: 1.15rem;
   font-weight: 700;
-  color: var(--gold);
+  color: var(--text);
 }
 
 /* Botones */
@@ -170,7 +221,8 @@ h2 {
   border-radius: 8px;
   border: 1px solid transparent;
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
+  box-shadow: none;
+  transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.15s, box-shadow 0.15s;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -179,26 +231,30 @@ h2 {
 }
 
 .btn--primary {
-  color: #0a0e14;
-  background: linear-gradient(180deg, #ffd87a, var(--gold));
-  border-color: rgba(255, 255, 255, 0.15);
+  color: #120b11;
+  background: var(--brand-gradient);
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 12px 28px rgba(255, 76, 32, 0.24), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
 }
 
 .btn--primary:hover,
 .btn--primary:focus-visible {
-  filter: brightness(1.05);
+  filter: brightness(1.08) saturate(1.08);
+  transform: translateY(-1px);
   outline: none;
 }
 
 .btn--ghost {
   color: var(--text);
-  background: transparent;
+  background: rgba(255, 255, 255, 0.03);
   border-color: var(--border);
 }
 
 .btn--ghost:hover,
 .btn--ghost:focus-visible {
   border-color: var(--accent);
+  background: var(--accent-dim);
+  box-shadow: 0 10px 24px rgba(16, 212, 212, 0.12);
   outline: none;
 }
 
@@ -245,7 +301,7 @@ h2 {
   font-family: inherit;
   font-size: 1rem;
   color: var(--text);
-  background: var(--bg);
+  background: rgba(7, 6, 9, 0.62);
   border: 1px solid var(--border);
   border-radius: 8px;
 }
@@ -253,8 +309,9 @@ h2 {
 .field input:focus-visible,
 .field textarea:focus-visible,
 .field select:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(16, 212, 212, 0.16);
+  outline: none;
 }
 
 .hint {
@@ -313,7 +370,7 @@ h2 {
 }
 
 .match-list li.is-bye {
-  border-left: 3px solid var(--gold);
+  border-left: 3px solid var(--orange);
   padding-left: 0.35rem;
 }
 
@@ -332,7 +389,7 @@ h2 {
   align-items: center;
   gap: 0.35rem;
   padding: 0.35rem 0.75rem;
-  background: var(--bg);
+  background: rgba(7, 6, 9, 0.62);
   border: 1px solid var(--border);
   border-radius: 999px;
   font-size: 0.9rem;
@@ -361,7 +418,7 @@ h2 {
   font-family: inherit;
   font-size: 1rem;
   color: var(--text);
-  background: var(--bg);
+  background: rgba(7, 6, 9, 0.62);
   border: 1px solid var(--border);
   border-radius: 8px;
 }
@@ -381,22 +438,60 @@ h2 {
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 2rem 1rem;
+  padding: clamp(2rem, 6vw, 4.5rem) 1rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.landing::before {
+  content: "";
+  position: absolute;
+  inset: 10% -18%;
+  background:
+    repeating-linear-gradient(135deg, rgba(255, 47, 79, 0.16) 0 2px, transparent 2px 28px),
+    repeating-linear-gradient(45deg, rgba(16, 212, 212, 0.14) 0 2px, transparent 2px 34px);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent);
+  opacity: 0.45;
+  pointer-events: none;
 }
 
 .landing__logo {
-  font-size: 2rem;
-  margin-bottom: 0.5rem;
+  width: min(78vw, 430px);
+  height: auto;
+  margin-bottom: 0.85rem;
+  filter: drop-shadow(0 24px 28px rgba(0, 0, 0, 0.45));
+  position: relative;
+  z-index: 1;
 }
 
 .landing h1 {
-  font-size: 1.75rem;
+  max-width: 760px;
+  margin-bottom: 1.75rem;
+  font-size: 2.15rem;
+  line-height: 0.96;
+  text-transform: uppercase;
+  color: var(--text);
+  text-shadow: 0 16px 32px rgba(0, 0, 0, 0.35);
+  position: relative;
+  z-index: 1;
 }
 
-.landing__sub {
-  margin: 0 0 2rem;
-  color: var(--muted);
-  max-width: 28ch;
+.landing > .muted {
+  position: relative;
+  z-index: 1;
+}
+
+@media (min-width: 600px) {
+  .landing h1 {
+    font-size: 3.1rem;
+  }
+}
+
+@media (min-width: 960px) {
+  .landing h1 {
+    font-size: 4.25rem;
+  }
 }
 
 .landing__btns {
@@ -405,6 +500,8 @@ h2 {
   gap: 0.75rem;
   width: 100%;
   max-width: 340px;
+  position: relative;
+  z-index: 1;
 }
 
 .landing__btns .btn {
@@ -476,7 +573,7 @@ code {
   gap: 0.5rem 0.75rem;
   align-items: start;
   padding: 0.65rem 0.75rem;
-  background: var(--bg);
+  background: rgba(7, 6, 9, 0.62);
   border: 1px solid var(--border);
   border-radius: 8px;
 }
@@ -548,7 +645,7 @@ code {
 
 .registry-card {
   padding: 0.85rem 1rem;
-  background: var(--bg);
+  background: rgba(7, 6, 9, 0.62);
   border: 1px solid var(--border);
   border-radius: var(--radius);
 }
@@ -603,7 +700,7 @@ code {
 
 .torneo-admin-item {
   padding: 0.75rem 0.85rem;
-  background: var(--bg);
+  background: rgba(7, 6, 9, 0.62);
   border: 1px solid var(--border);
   border-radius: 8px;
 }
@@ -650,7 +747,9 @@ code {
   align-items: flex-start;
   gap: 0.25rem;
   padding: 1rem 1.1rem;
-  background: var(--surface);
+  background:
+    linear-gradient(145deg, rgba(255, 47, 79, 0.08), rgba(16, 212, 212, 0.06)),
+    var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   text-decoration: none;
@@ -661,7 +760,9 @@ code {
 .torneo-public-card__link:hover,
 .torneo-public-card__link:focus-visible {
   border-color: var(--accent);
-  background: var(--accent-dim);
+  background:
+    linear-gradient(145deg, rgba(255, 47, 79, 0.12), rgba(16, 212, 212, 0.14)),
+    var(--surface-strong);
   outline: none;
 }
 
@@ -676,7 +777,7 @@ code {
 
 .torneo-public-card__count {
   font-size: 0.8rem;
-  color: var(--gold);
+  color: var(--orange);
   font-weight: 600;
 }
 
@@ -690,6 +791,7 @@ code {
   letter-spacing: 0.04em;
   color: var(--accent);
   background: var(--accent-dim);
+  border: 1px solid rgba(16, 212, 212, 0.22);
   border-radius: 6px;
 }
 
@@ -768,7 +870,7 @@ code {
   gap: 0.5rem 0.65rem;
   padding: 0.5rem 0.6rem;
   margin-bottom: 0.4rem;
-  background: var(--bg);
+  background: rgba(7, 6, 9, 0.62);
   border: 1px solid var(--border);
   border-radius: 8px;
   font-size: 0.875rem;
@@ -805,7 +907,7 @@ code {
 }
 
 .torneo-admin-item__estado--inscripcion {
-  color: #7dd87d;
+  color: var(--ok);
 }
 
 .torneo-admin-item__estado--en_curso {
@@ -829,13 +931,13 @@ code {
 }
 
 .torneo-public-card__estado--inscripcion {
-  color: #7dd87d;
-  border-color: rgba(125, 216, 125, 0.35);
+  color: var(--ok);
+  border-color: rgba(34, 225, 140, 0.35);
 }
 
 .torneo-public-card__estado--en_curso {
   color: var(--gold);
-  border-color: rgba(212, 175, 55, 0.35);
+  border-color: rgba(255, 211, 53, 0.35);
 }
 
 .torneo-public-card__estado--finalizado {
@@ -859,15 +961,15 @@ code {
 }
 
 .torneo-estado-pill--inscripcion {
-  color: #7dd87d;
-  border-color: rgba(125, 216, 125, 0.4);
-  background: rgba(125, 216, 125, 0.08);
+  color: var(--ok);
+  border-color: rgba(34, 225, 140, 0.4);
+  background: rgba(34, 225, 140, 0.08);
 }
 
 .torneo-estado-pill--en_curso {
   color: var(--gold);
-  border-color: rgba(212, 175, 55, 0.4);
-  background: rgba(212, 175, 55, 0.1);
+  border-color: rgba(255, 211, 53, 0.4);
+  background: rgba(255, 211, 53, 0.1);
 }
 
 .torneo-estado-pill--finalizado {
@@ -903,10 +1005,10 @@ code {
 
 .knockout-match {
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 8px;
   padding: 0.5rem 0.65rem;
   margin-bottom: 0.5rem;
-  background: var(--bg);
+  background: rgba(7, 6, 9, 0.62);
 }
 
 .knockout-match__side {
