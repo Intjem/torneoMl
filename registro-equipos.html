@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#100d12" />
-  <meta name="description" content="Inscribe a tu equipo en los torneos de Mobile Legends de Sky Kings." />
-  <title>Registro de equipos — Sky Kings</title>
+  <meta name="description" content="Crea tu equipo para los torneos de Mobile Legends de Sky Kings." />
+  <title>Crear equipo — Sky Kings</title>
   <link rel="stylesheet" href="styles-simple.css" />
 </head>
 <body>
@@ -17,52 +17,54 @@
     <nav class="topbar__nav">
       <a class="topbar__link" href="index.html">Inicio</a>
       <a class="topbar__link" href="torneo.html">Torneos</a>
-      <a class="topbar__link" href="login.html">Mi cuenta</a>
+      <a class="topbar__link" href="equipos.html">Equipos</a>
     </nav>
   </header>
 
   <div class="wrap wrap--wide">
-    <h1>Registro de equipos</h1>
+    <h1>Crear equipo</h1>
     <p class="lead">
-      El <strong>capitán</strong> registra el equipo eligiendo el torneo y categoría,
-      e ingresando sus datos de Mobile Legends y teléfono de contacto.
+      Como <strong>capitán</strong>, crea tu equipo aquí. Una vez creado,
+      los jugadores pueden <a href="equipos.html">unirse al equipo</a> y tú podrás
+      <a href="equipos.html">inscribirlo a un torneo</a>.
     </p>
 
-    <p class="hint" id="regTorneosHint" role="status" hidden></p>
+    <!-- Success state (hidden until created) -->
+    <div class="card" id="successBox" hidden style="text-align:center; padding: 2rem;">
+      <div style="font-size:2.5rem; margin-bottom:0.75rem;">🎮</div>
+      <h2 id="successTitle" style="margin-bottom:0.5rem;">¡Equipo creado!</h2>
+      <p id="successMsg" class="muted" style="margin-bottom:1.5rem;"></p>
+      <div style="display:flex;flex-direction:column;gap:0.75rem;max-width:280px;margin:0 auto;">
+        <a class="btn btn--primary" href="equipos.html">Ver equipos e inscribirse</a>
+        <button type="button" class="btn btn--ghost" id="btnCreateAnother">Crear otro equipo</button>
+      </div>
+    </div>
 
+    <!-- Form -->
     <form id="registryForm" class="card" novalidate>
       <!-- Categoría -->
       <div class="field">
-        <label for="regCategory">Categoría de inscripción</label>
+        <label for="regCategory">Categoría del equipo</label>
         <select id="regCategory" name="category" required>
-          <option value="individual">Individual (todos contra todos)</option>
-          <option value="1v1">1v1 (un jugador por inscripción)</option>
-          <option value="2v2">2v2 (dúo — 2 jugadores)</option>
-          <option value="4v4">4v4 (torneo de equipos)</option>
+          <option value="individual">Individual (solo tú)</option>
+          <option value="1v1">1v1 (solo tú)</option>
+          <option value="2v2">2v2 — dúo (capitán + 1 jugador)</option>
+          <option value="4v4" selected>4v4 — equipo (capitán + 3 titulares + hasta 3 suplentes)</option>
         </select>
         <p class="hint" id="categoryHint"></p>
       </div>
 
-      <!-- Torneo -->
-      <div class="field">
-        <label for="regTorneo">Torneo</label>
-        <select id="regTorneo" name="torneoId" required></select>
-        <p class="hint" id="regTorneoFilterHint">
-          La lista se filtra según la categoría elegida arriba.
-        </p>
-      </div>
-
-      <!-- Nombre del equipo (solo equipos) -->
-      <div class="field" id="teamNameWrap" hidden>
-        <label for="teamName">Nombre del equipo <span class="muted">(opcional)</span></label>
+      <!-- Nombre del equipo -->
+      <div class="field" id="teamNameWrap">
+        <label for="teamName">Nombre del equipo <span class="muted" id="teamNameOptional">(opcional)</span></label>
         <input type="text" id="teamName" name="teamName" maxlength="100" placeholder="Ej. Los del barrio" />
       </div>
 
       <!-- Datos del capitán -->
       <fieldset class="reg-fieldset">
-        <legend>Datos del capitán</legend>
+        <legend>Tus datos (capitán)</legend>
         <div class="field">
-          <label for="captainMlId">ID ML del capitán</label>
+          <label for="captainMlId">Tu ID de Mobile Legends</label>
           <input
             type="text"
             id="captainMlId"
@@ -72,9 +74,10 @@
             placeholder="Ej. 123456789"
             required
           />
+          <p class="hint">Lo encuentras en tu perfil del juego, debajo del nick.</p>
         </div>
         <div class="field">
-          <label for="captainNick">Nick en juego del capitán</label>
+          <label for="captainNick">Tu nick en juego</label>
           <input
             type="text"
             id="captainNick"
@@ -85,7 +88,7 @@
           />
         </div>
         <div class="field">
-          <label for="captainPhone">Teléfono del capitán</label>
+          <label for="captainPhone">Tu teléfono de contacto</label>
           <input
             type="tel"
             id="captainPhone"
@@ -100,16 +103,15 @@
       </fieldset>
 
       <p class="hint" id="regMsg" role="status"></p>
-      <button type="submit" class="btn btn--primary btn--block" id="btnSubmitReg">Guardar inscripción</button>
+      <button type="submit" class="btn btn--primary btn--block" id="btnSubmitReg">Crear equipo</button>
     </form>
 
     <p class="muted" style="margin-top: 1.25rem">
-      Los datos se envían al servidor y el administrador puede verlos en el panel Admin.
+      Después de crear el equipo, los jugadores pueden <a href="equipos.html">unirse</a> y tú podrás inscribirlo a un torneo desde esa misma página.
     </p>
   </div>
 
   <script src="api-client.js"></script>
-  <script src="tournament.js"></script>
   <script src="registro-equipos.js"></script>
 </body>
 </html>

@@ -2,32 +2,31 @@
   "use strict";
 
   var api = window.apiClient;
-  var S = window.Shared;
-  if (!api || !S) return;
+  if (!api) return;
 
   var CATEGORY_HINTS = {
-    individual: "Un solo jugador que actúa como capitán.",
-    "1v1":      "Un jugador por inscripción (bracket 1v1).",
-    "2v2":      "Registras el dúo. Nombre del dúo es opcional.",
-    "4v4":      "Registras el equipo de 4 jugadores + suplentes opcionales."
+    individual: "Solo tú. Eres el único integrante.",
+    "1v1":      "Solo tú. Un jugador por inscripción.",
+    "2v2":      "Tú como capitán + 1 jugador titular.",
+    "4v4":      "Tú como capitán + hasta 3 titulares + hasta 3 suplentes."
   };
 
-  var form            = document.getElementById("registryForm");
-  var regTorneo       = document.getElementById("regTorneo");
-  var regTorneosHint  = document.getElementById("regTorneosHint");
-  var categoryEl      = document.getElementById("regCategory");
-  var categoryHint    = document.getElementById("categoryHint");
-  var teamNameWrap    = document.getElementById("teamNameWrap");
-  var captainMlId     = document.getElementById("captainMlId");
-  var captainNick     = document.getElementById("captainNick");
-  var captainPhoneEl  = document.getElementById("captainPhone");
-  var regMsg          = document.getElementById("regMsg");
-  var btnSubmitReg    = document.getElementById("btnSubmitReg");
-
-  function currentCat() { return categoryEl && categoryEl.value ? categoryEl.value : "individual"; }
+  var form         = document.getElementById("registryForm");
+  var successBox   = document.getElementById("successBox");
+  var successTitle = document.getElementById("successTitle");
+  var successMsg   = document.getElementById("successMsg");
+  var categoryEl   = document.getElementById("regCategory");
+  var categoryHint = document.getElementById("categoryHint");
+  var teamNameWrap = document.getElementById("teamNameWrap");
+  var captainMlId  = document.getElementById("captainMlId");
+  var captainNick  = document.getElementById("captainNick");
+  var captainPhone = document.getElementById("captainPhone");
+  var regMsg       = document.getElementById("regMsg");
+  var btnSubmit    = document.getElementById("btnSubmitReg");
+  var btnAnother   = document.getElementById("btnCreateAnother");
 
   function normalizePhone(p) { return String(p || "").replace(/\s+/g, "").trim(); }
-  function isPhoneOk(p) { return normalizePhone(p).replace(/\D/g, "").length >= 8; }
+  function isPhoneOk(p)      { return normalizePhone(p).replace(/\D/g, "").length >= 8; }
 
   function showHint(el, text, isErr) {
     if (!el) return;
@@ -36,153 +35,73 @@
     el.hidden = !text;
   }
 
-  // ── Populate torneo select from API ──
-  function populateTorneoSelect() {
-    if (!regTorneo) return;
-    var cat = currentCat();
-
-    // Show/hide team name field
+  function onCategoryChange() {
+    var cat = categoryEl ? categoryEl.value : "4v4";
+    if (categoryHint) categoryHint.textContent = CATEGORY_HINTS[cat] || "";
     if (teamNameWrap) {
       teamNameWrap.hidden = (cat === "individual" || cat === "1v1");
     }
-    if (categoryHint) {
-      categoryHint.textContent = CATEGORY_HINTS[cat] || "";
-    }
-
-    api.getTorneos({ estado: "inscripcion" })
-      .then(function(all) {
-        var filtered = all.filter(function(t) {
-          if (!t.modalidad) return true;
-          return t.modalidad === cat;
-        });
-
-        filtered.sort(function(a, b) {
-          return ((a.fecha || "") + (a.hora || "")).localeCompare((b.fecha || "") + (b.hora || ""));
-        });
-
-        regTorneo.innerHTML = "";
-
-        if (all.length === 0) {
-          regTorneo.appendChild(makeOpt("", "— No hay torneos —"));
-          regTorneo.disabled = true;
-          if (btnSubmitReg) btnSubmitReg.disabled = true;
-          showHint(regTorneosHint, "El administrador debe crear torneos primero.", true);
-          return;
-        }
-
-        if (filtered.length === 0) {
-          regTorneo.appendChild(makeOpt("", "— Ningún torneo para esta categoría —"));
-          regTorneo.disabled = true;
-          if (btnSubmitReg) btnSubmitReg.disabled = true;
-          showHint(regTorneosHint, "No hay torneos con inscripción abierta para esta categoría.", true);
-          return;
-        }
-
-        regTorneo.disabled = false;
-        if (btnSubmitReg) btnSubmitReg.disabled = false;
-        showHint(regTorneosHint, "", false);
-
-        regTorneo.appendChild(makeOpt("", "Selecciona un torneo…"));
-        filtered.forEach(function(t) {
-          regTorneo.appendChild(makeOpt(S.getId(t), t.nombre + " · " + S.formatWhen(t) + " · " + S.formatoYModalidad(t)));
-        });
-
-        // Auto-select from URL
-        var fromUrl = new URLSearchParams(window.location.search).get("torneo");
-        if (fromUrl && filtered.some(function(t) { return S.getId(t) === fromUrl; })) {
-          regTorneo.value = fromUrl;
-        }
-      })
-      .catch(function(err) {
-        regTorneo.innerHTML = "";
-        regTorneo.appendChild(makeOpt("", "— Error cargando torneos —"));
-        regTorneo.disabled = true;
-        showHint(regTorneosHint, "Error: " + (err.message || "Sin conexión al servidor"), true);
-      });
+    showHint(regMsg, "", false);
   }
 
-  function makeOpt(value, text) {
-    var opt = document.createElement("option");
-    opt.value = value;
-    opt.textContent = text;
-    return opt;
-  }
-
-  // ── Submit ──
   function onSubmit(e) {
     e.preventDefault();
     showHint(regMsg, "", false);
 
-    var cat    = currentCat();
-    var mlId   = captainMlId ? captainMlId.value.trim() : "";
-    var nick   = captainNick ? captainNick.value.trim() : "";
-    var phone  = normalizePhone(captainPhoneEl && captainPhoneEl.value);
+    var cat   = categoryEl   ? categoryEl.value.trim()   : "4v4";
+    var mlId  = captainMlId  ? captainMlId.value.trim()  : "";
+    var nick  = captainNick  ? captainNick.value.trim()   : "";
+    var phone = normalizePhone(captainPhone ? captainPhone.value : "");
+    var tnEl  = document.getElementById("teamName");
+    var teamName = tnEl && !teamNameWrap.hidden ? tnEl.value.trim() : "";
 
-    if (!mlId)        { showHint(regMsg, "Ingresa tu ID ML de Mobile Legends.", true); return; }
-    if (!nick)        { showHint(regMsg, "Ingresa tu nick en juego.", true); return; }
-    if (!isPhoneOk(phone)) { showHint(regMsg, "Teléfono del capitán: al menos 8 dígitos.", true); return; }
+    if (!mlId)         { showHint(regMsg, "Ingresa tu ID de Mobile Legends.", true); return; }
+    if (!nick)         { showHint(regMsg, "Ingresa tu nick en juego.", true); return; }
+    if (!isPhoneOk(phone)) { showHint(regMsg, "Teléfono: al menos 8 dígitos.", true); return; }
 
-    var torneoId = regTorneo && regTorneo.value ? regTorneo.value.trim() : "";
-    if (!torneoId) { showHint(regMsg, "Elige un torneo válido.", true); return; }
+    if (btnSubmit) btnSubmit.disabled = true;
+    showHint(regMsg, "Creando equipo…", false);
 
-    var teamNameVal = "";
-    var tnEl = document.getElementById("teamName");
-    if (tnEl && !teamNameWrap.hidden) teamNameVal = tnEl.value.trim();
-
-    var entry = {
-      torneoId: torneoId,
-      category: cat,
-      teamName: teamNameVal || null,
-      captainPhone: phone,
-      players: [{
-        mlId: mlId,
-        nick: nick,
-        role: "captain",
-        substitute: false,
-        phone: phone
-      }]
-    };
-
-    if (btnSubmitReg) btnSubmitReg.disabled = true;
-    showHint(regMsg, "Enviando...", false);
-
-    api.createRegistro(entry)
-      .then(function() {
-        showHint(regMsg, "¡Inscripción guardada correctamente!", false);
-        if (captainMlId)  captainMlId.value  = "";
-        if (captainNick)  captainNick.value   = "";
-        if (captainPhoneEl) captainPhoneEl.value = "";
-        if (tnEl) tnEl.value = "";
-      })
-      .catch(function(err) {
-        showHint(regMsg, err.message || "Error al inscribirse.", true);
-      })
-      .finally(function() {
-        if (btnSubmitReg) btnSubmitReg.disabled = false;
-      });
+    api.createEquipo({
+      teamName:    teamName || undefined,
+      category:    cat,
+      captainMlId: mlId,
+      captainNick: nick,
+      captainPhone: phone
+    })
+    .then(function(res) {
+      var equipo = res.equipo || res;
+      if (form)       form.hidden = true;
+      if (successBox) successBox.hidden = false;
+      if (successTitle) successTitle.textContent = "¡Equipo \"" + (equipo.teamName || nick + "'s team") + "\" creado!";
+      if (successMsg) {
+        successMsg.textContent =
+          "Categoría: " + cat.toUpperCase() +
+          ". Ahora los jugadores pueden unirse y tú puedes inscribirlo a un torneo.";
+      }
+    })
+    .catch(function(err) {
+      showHint(regMsg, err.message || "Error creando el equipo.", true);
+    })
+    .finally(function() {
+      if (btnSubmit) btnSubmit.disabled = false;
+    });
   }
 
-  // ── Events ──
-  if (categoryEl) {
-    categoryEl.addEventListener("change", function() {
+  // Reset to create another
+  if (btnAnother) {
+    btnAnother.addEventListener("click", function() {
+      if (form)       form.hidden = false;
+      if (successBox) successBox.hidden = true;
+      form.reset();
+      onCategoryChange();
       showHint(regMsg, "", false);
-      populateTorneoSelect();
     });
   }
 
-  if (form) form.addEventListener("submit", onSubmit);
+  if (categoryEl) categoryEl.addEventListener("change", onCategoryChange);
+  if (form)       form.addEventListener("submit", onSubmit);
 
-  // Auto-select category from URL torneo
-  var urlTorneo = new URLSearchParams(window.location.search).get("torneo");
-  if (urlTorneo && categoryEl) {
-    api.getTorneos().then(function(all) {
-      var t = all.find(function(x) { return S.getId(x) === urlTorneo; });
-      if (t && t.modalidad) categoryEl.value = t.modalidad;
-      populateTorneoSelect();
-    }).catch(function() {
-      populateTorneoSelect();
-    });
-  } else {
-    populateTorneoSelect();
-  }
+  // Init
+  onCategoryChange();
 })();

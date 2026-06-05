@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#100d12" />
+  <meta name="description" content="Únete a un equipo o inscribe tu equipo a un torneo en Sky Kings MLBB." />
+  <title>Equipos — Sky Kings</title>
+  <link rel="stylesheet" href="styles-simple.css" />
+  <style>
+    /* ── Equipos page extras ── */
+    .eq-tabs {
+      display: flex;
+      background: var(--bg, #100d12);
+      border-radius: 12px;
+      padding: 5px;
+      gap: 4px;
+      margin-bottom: 2rem;
+      max-width: 520px;
+    }
+    .eq-tab {
+      flex: 1;
+      padding: 0.6rem 1rem;
+      border: none;
+      background: transparent;
+      color: var(--text-muted, #94a3b8);
+      font-size: 0.9rem;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .eq-tab.active {
+      background: var(--primary, #a855f7);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(168,85,247,0.35);
+    }
+    .eq-panel { display: none; }
+    .eq-panel.active { display: block; }
+
+    /* Team cards */
+    .equipo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.25rem;
+      margin-top: 1rem;
+    }
+    .equipo-card {
+      background: var(--surface, #1a1625);
+      border: 1px solid var(--border, #2d2640);
+      border-radius: 14px;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .equipo-card:hover {
+      border-color: #a855f750;
+      box-shadow: 0 4px 20px rgba(168,85,247,0.1);
+    }
+    .equipo-card__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+    .equipo-card__name {
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: var(--text, #f1f5f9);
+    }
+    .equipo-card__badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      background: rgba(168,85,247,0.15);
+      color: #c084fc;
+      border: 1px solid rgba(168,85,247,0.3);
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 0.2rem 0.6rem;
+      white-space: nowrap;
+    }
+    .equipo-card__badge--inscrito {
+      background: rgba(34,197,94,0.12);
+      color: #4ade80;
+      border-color: rgba(34,197,94,0.25);
+    }
+    .equipo-card__captain {
+      font-size: 0.85rem;
+      color: var(--text-muted, #94a3b8);
+    }
+    .equipo-card__captain strong {
+      color: var(--text, #f1f5f9);
+    }
+    .equipo-card__members {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+    .equipo-card__members li {
+      font-size: 0.82rem;
+      color: var(--text-muted, #94a3b8);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .equipo-card__members li::before {
+      content: '👤';
+      font-size: 0.75rem;
+    }
+    .equipo-card__members .sub-tag {
+      font-size: 0.68rem;
+      background: rgba(99,102,241,0.2);
+      color: #818cf8;
+      border-radius: 4px;
+      padding: 0.1rem 0.35rem;
+    }
+    .equipo-card__slots {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .slot-pill {
+      font-size: 0.75rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+      border: 1px solid;
+    }
+    .slot-pill--open  { background: rgba(34,197,94,0.1);  color:#4ade80; border-color:rgba(34,197,94,0.25); }
+    .slot-pill--full  { background: rgba(239,68,68,0.1);   color:#f87171; border-color:rgba(239,68,68,0.2);  }
+    .slot-pill--none  { background: rgba(100,116,139,0.1); color:#94a3b8; border-color:rgba(100,116,139,0.2);}
+    .equipo-card__torneo {
+      font-size: 0.82rem;
+      color: #4ade80;
+    }
+
+    /* Join / Inscribir modal-like inline box */
+    .action-box {
+      background: rgba(168,85,247,0.07);
+      border: 1px solid rgba(168,85,247,0.2);
+      border-radius: 12px;
+      padding: 1rem;
+      margin-top: 0.25rem;
+    }
+    .action-box.hidden { display: none; }
+    .captain-verify {
+      background: rgba(99,102,241,0.08);
+      border: 1px solid rgba(99,102,241,0.2);
+      border-radius: 12px;
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+    .captain-verify h3 { margin-bottom: 0.75rem; font-size: 1rem; }
+    .equipo-inscribir-card {
+      background: var(--surface, #1a1625);
+      border: 1px solid var(--border, #2d2640);
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1rem;
+    }
+    .equipo-inscribir-card h4 { margin-bottom: 0.35rem; }
+    .equipo-inscribir-card .muted { font-size: 0.82rem; }
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--text-muted, #94a3b8);
+    }
+    .empty-state .icon { font-size: 3rem; margin-bottom: 0.75rem; }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="topbar__brand" href="index.html" aria-label="Sky Kings - Inicio">
+      <img class="brand-logo" src="assets/sky-kings-logo.png" alt="" />
+      <span class="brand-word">Sky <span>Kings</span></span>
+    </a>
+    <nav class="topbar__nav">
+      <a class="topbar__link" href="index.html">Inicio</a>
+      <a class="topbar__link" href="torneo.html">Torneos</a>
+      <a class="topbar__link" href="registro-equipos.html">Crear equipo</a>
+    </nav>
+  </header>
+
+  <div class="wrap wrap--wide">
+    <h1>Equipos</h1>
+
+    <!-- Tabs -->
+    <div class="eq-tabs" role="tablist">
+      <button class="eq-tab active" id="tabJoin"      role="tab" aria-selected="true"  aria-controls="panelJoin">🎮 Unirse a equipo</button>
+      <button class="eq-tab"        id="tabInscribir" role="tab" aria-selected="false" aria-controls="panelInscribir">⚔️ Inscribir mi equipo</button>
+    </div>
+
+    <!-- ── Panel: Unirse a equipo ── -->
+    <div class="eq-panel active" id="panelJoin" role="tabpanel" aria-labelledby="tabJoin">
+      <p class="lead" style="margin-bottom:1.25rem;">
+        Elige un equipo con cupos disponibles e ingresa tus datos para unirte.
+        <a href="registro-equipos.html">¿Eres capitán? Crea tu equipo aquí.</a>
+      </p>
+
+      <!-- Filter -->
+      <div class="field" style="max-width:280px; margin-bottom:1rem;">
+        <label for="filterCategory">Filtrar por categoría</label>
+        <select id="filterCategory">
+          <option value="">Todos</option>
+          <option value="individual">Individual</option>
+          <option value="1v1">1v1</option>
+          <option value="2v2">2v2</option>
+          <option value="4v4">4v4</option>
+        </select>
+      </div>
+
+      <p class="hint hint--err" id="joinMsg" role="status" hidden></p>
+      <p id="joinLoading" class="muted">Cargando equipos…</p>
+
+      <div class="equipo-grid" id="equipoGrid"></div>
+
+      <!-- Join form (shown inline per card via JS) -->
+    </div>
+
+    <!-- ── Panel: Inscribir mi equipo ── -->
+    <div class="eq-panel" id="panelInscribir" role="tabpanel" aria-labelledby="tabInscribir">
+      <p class="lead" style="margin-bottom:1.5rem;">
+        Ingresa tu <strong>ID ML</strong> para ver los equipos donde eres capitán y
+        elegir a qué torneo inscribirlos.
+      </p>
+
+      <div class="captain-verify">
+        <h3>Verificar capitán</h3>
+        <div class="field">
+          <label for="captainVerifyId">Tu ID de Mobile Legends</label>
+          <input
+            type="text"
+            id="captainVerifyId"
+            maxlength="32"
+            inputmode="numeric"
+            placeholder="Ej. 123456789"
+          />
+        </div>
+        <button type="button" class="btn btn--primary" id="btnVerifyCaptain">Buscar mis equipos</button>
+        <p class="hint hint--err" id="verifyErr" hidden></p>
+      </div>
+
+      <div id="captainEquipos" hidden>
+        <h2 style="margin-bottom:1rem;">Tus equipos</h2>
+        <p class="hint hint--err" id="inscribirMsg" role="status" hidden></p>
+        <div id="captainEquiposList"></div>
+      </div>
+    </div>
+  </div><!-- /.wrap -->
+
+  <!-- Join modal overlay -->
+  <div id="joinModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:100; align-items:center; justify-content:center; padding:1rem;">
+    <div style="background:var(--surface,#1a1625); border:1px solid var(--border,#2d2640); border-radius:16px; padding:1.75rem; width:100%; max-width:420px; max-height:90vh; overflow-y:auto;">
+      <h2 id="modalTitle" style="margin-bottom:1.25rem; font-size:1.1rem;">Unirse al equipo</h2>
+      <div class="field">
+        <label for="joinMlId">Tu ID de Mobile Legends</label>
+        <input type="text" id="joinMlId" maxlength="32" inputmode="numeric" placeholder="Ej. 123456789" />
+      </div>
+      <div class="field">
+        <label for="joinNick">Tu nick en juego</label>
+        <input type="text" id="joinNick" maxlength="80" placeholder="Ej. SkyShadow" />
+      </div>
+      <div class="field" id="joinSubField">
+        <label style="display:flex; align-items:center; gap:0.6rem; cursor:pointer; font-weight:500;">
+          <input type="checkbox" id="joinSub" style="width:18px;height:18px;" />
+          Quiero ser suplente
+        </label>
+        <p class="hint">Desmarcado = titular. Los suplentes entran si un titular no puede.</p>
+      </div>
+      <p class="hint hint--err" id="joinModalErr" role="status" hidden></p>
+      <div style="display:flex; gap:0.75rem; margin-top:1rem;">
+        <button type="button" class="btn btn--primary" id="btnJoinConfirm" style="flex:1">Unirme</button>
+        <button type="button" class="btn btn--ghost" id="btnJoinCancel">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Inscribir modal -->
+  <div id="inscribirModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:100; align-items:center; justify-content:center; padding:1rem;">
+    <div style="background:var(--surface,#1a1625); border:1px solid var(--border,#2d2640); border-radius:16px; padding:1.75rem; width:100%; max-width:440px; max-height:90vh; overflow-y:auto;">
+      <h2 id="inscribirModalTitle" style="margin-bottom:1.25rem; font-size:1.1rem;">Inscribir equipo</h2>
+      <p id="inscribirModalSubtitle" class="muted" style="margin-bottom:1rem; font-size:0.85rem;"></p>
+      <div class="field">
+        <label for="inscribirTorneo">Selecciona el torneo</label>
+        <select id="inscribirTorneo"></select>
+      </div>
+      <p class="hint hint--err" id="inscribirModalErr" role="status" hidden></p>
+      <div style="display:flex; gap:0.75rem; margin-top:1rem;">
+        <button type="button" class="btn btn--primary" id="btnInscribirConfirm" style="flex:1">Inscribir</button>
+        <button type="button" class="btn btn--ghost" id="btnInscribirCancel">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="api-client.js"></script>
+  <script src="tournament.js"></script>
+  <script src="equipos.js"></script>
+</body>
+</html>

@@ -8,9 +8,10 @@ const { createServer } = require('http');
 const { Server } = require('socket.io');
 require('dotenv').config();
 
-const authRoutes = require('./routes/auth');
-const torneoRoutes = require('./routes/torneos');
+const authRoutes     = require('./routes/auth');
+const torneoRoutes   = require('./routes/torneos');
 const registroRoutes = require('./routes/registros');
+const equipoRoutes   = require('./routes/equipos');
 
 const app = express();
 const server = createServer(app);
@@ -72,6 +73,7 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/torneos-m
 app.use('/api/auth', authRoutes);
 app.use('/api/torneos', torneoRoutes);
 app.use('/api/registros', registroRoutes);
+app.use('/api/equipos', equipoRoutes);
 
 // Health check
 app.get('/health', (req, res) => {
