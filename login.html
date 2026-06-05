@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#100d12" />
+  <meta name="description" content="Inicia sesión o crea tu cuenta de jugador en Sky Kings Torneos MLBB." />
+  <title>Login — Sky Kings</title>
+  <link rel="stylesheet" href="styles-simple.css" />
+  <style>
+    /* ── Login page extras ── */
+    .auth-wrap {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem 4rem;
+    }
+    .auth-logo {
+      width: 72px;
+      height: 72px;
+      object-fit: contain;
+      margin-bottom: 1rem;
+      filter: drop-shadow(0 0 16px #a855f780);
+    }
+    .auth-title {
+      font-size: 1.6rem;
+      font-weight: 800;
+      text-align: center;
+      margin-bottom: 0.25rem;
+      background: linear-gradient(135deg, #c084fc, #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .auth-subtitle {
+      text-align: center;
+      color: var(--text-muted, #94a3b8);
+      font-size: 0.9rem;
+      margin-bottom: 2rem;
+    }
+    .auth-card {
+      width: 100%;
+      max-width: 420px;
+      background: var(--surface, #1a1625);
+      border: 1px solid var(--border, #2d2640);
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+    .auth-tabs {
+      display: flex;
+      background: var(--bg, #100d12);
+      border-radius: 10px;
+      padding: 4px;
+      margin-bottom: 1.75rem;
+      gap: 4px;
+    }
+    .auth-tab {
+      flex: 1;
+      padding: 0.55rem 1rem;
+      border: none;
+      background: transparent;
+      color: var(--text-muted, #94a3b8);
+      font-size: 0.9rem;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .auth-tab.active {
+      background: var(--primary, #a855f7);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(168,85,247,0.35);
+    }
+    .auth-panel { display: none; }
+    .auth-panel.active { display: block; }
+
+    .auth-divider {
+      text-align: center;
+      color: var(--text-muted, #94a3b8);
+      font-size: 0.8rem;
+      margin: 1.5rem 0 0.5rem;
+    }
+    .auth-welcome {
+      text-align: center;
+      padding: 2rem 1rem;
+    }
+    .auth-welcome__icon {
+      font-size: 3rem;
+      margin-bottom: 0.75rem;
+    }
+    .auth-welcome h2 {
+      margin-bottom: 0.5rem;
+      font-size: 1.3rem;
+    }
+    .auth-welcome p {
+      color: var(--text-muted, #94a3b8);
+      margin-bottom: 1.5rem;
+    }
+    .auth-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #a855f7, #6366f1);
+      color: #fff;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+      margin-left: 0.4rem;
+      vertical-align: middle;
+    }
+    .ml-id-hint {
+      font-size: 0.8rem;
+      color: var(--text-muted, #94a3b8);
+      margin-top: 0.25rem;
+    }
+    .btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="topbar__brand" href="index.html" aria-label="Sky Kings - Inicio">
+      <img class="brand-logo" src="assets/sky-kings-logo.png" alt="" />
+      <span class="brand-word">Sky <span>Kings</span></span>
+    </a>
+    <nav class="topbar__nav">
+      <a class="topbar__link" href="index.html">Inicio</a>
+      <a class="topbar__link" href="torneo.html">Torneos</a>
+    </nav>
+  </header>
+
+  <div class="auth-wrap">
+    <img class="auth-logo" src="assets/sky-kings-logo.png" alt="Sky Kings" />
+    <div class="auth-title">Sky Kings</div>
+    <div class="auth-subtitle">Torneos Mobile Legends — Acceso de jugadores y administradores</div>
+
+    <div class="auth-card">
+
+      <!-- Tabs -->
+      <div class="auth-tabs" role="tablist">
+        <button class="auth-tab active" id="tabLogin" role="tab" aria-selected="true" aria-controls="panelLogin">
+          Iniciar sesión
+        </button>
+        <button class="auth-tab" id="tabRegister" role="tab" aria-selected="false" aria-controls="panelRegister">
+          Crear cuenta
+        </button>
+      </div>
+
+      <!-- ── Panel Login ── -->
+      <div class="auth-panel active" id="panelLogin" role="tabpanel" aria-labelledby="tabLogin">
+
+        <!-- Welcome (hidden initially, shown after login) -->
+        <div id="welcomeBox" hidden>
+          <div class="auth-welcome">
+            <div class="auth-welcome__icon">🎮</div>
+            <h2 id="welcomeName">¡Bienvenido!</h2>
+            <p id="welcomeInfo">Sesión iniciada correctamente.</p>
+            <div class="btn-group">
+              <a class="btn btn--primary" href="torneo.html" id="welcomeGoTorneos">Ver torneos</a>
+              <a class="btn btn--ghost" href="registro-equipos.html">Registrar equipo</a>
+              <button type="button" class="btn btn--ghost" id="btnWelcomeLogout">Cerrar sesión</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Login form -->
+        <div id="loginFormBox">
+          <div class="field">
+            <label for="loginEmail">Email</label>
+            <input type="email" id="loginEmail" autocomplete="email" placeholder="tu@correo.com" />
+          </div>
+          <div class="field">
+            <label for="loginPwd">Contraseña</label>
+            <input type="password" id="loginPwd" autocomplete="current-password" placeholder="••••••••" />
+          </div>
+          <p class="hint hint--err" id="loginErr" role="alert" hidden></p>
+          <button type="button" class="btn btn--primary btn--block" id="btnLogin" style="margin-top: 0.5rem">
+            Entrar
+          </button>
+
+          <p class="auth-divider">¿No tienes cuenta? <button class="topbar__link" id="goToRegister" style="background:none;border:none;cursor:pointer;padding:0;font-size:inherit;color:var(--primary,#a855f7);">Crear cuenta</button></p>
+        </div>
+      </div>
+
+      <!-- ── Panel Registro ── -->
+      <div class="auth-panel" id="panelRegister" role="tabpanel" aria-labelledby="tabRegister">
+
+        <!-- Success box (hidden initially) -->
+        <div id="registerSuccessBox" hidden>
+          <div class="auth-welcome">
+            <div class="auth-welcome__icon">✅</div>
+            <h2>¡Cuenta creada!</h2>
+            <p id="registerSuccessMsg">Tu cuenta ha sido registrada correctamente.</p>
+            <div class="btn-group">
+              <a class="btn btn--primary" href="torneo.html">Ver torneos</a>
+              <a class="btn btn--ghost" href="registro-equipos.html">Registrar equipo</a>
+            </div>
+          </div>
+        </div>
+
+        <div id="registerFormBox">
+          <div class="field">
+            <label for="regEmail">Email</label>
+            <input type="email" id="regEmail" autocomplete="email" placeholder="tu@correo.com" />
+          </div>
+          <div class="field">
+            <label for="regPwd">Contraseña <span class="muted">(mín. 4 caracteres)</span></label>
+            <input type="password" id="regPwd" autocomplete="new-password" placeholder="••••••••" />
+          </div>
+          <div class="field">
+            <label for="regMlId">ID de Mobile Legends</label>
+            <input
+              type="text"
+              id="regMlId"
+              maxlength="32"
+              inputmode="numeric"
+              placeholder="Ej. 123456789"
+            />
+            <p class="ml-id-hint">Encuéntralo en tu perfil del juego (abajo del nick)</p>
+          </div>
+          <div class="field">
+            <label for="regNick">Nick en juego</label>
+            <input
+              type="text"
+              id="regNick"
+              maxlength="80"
+              placeholder="Ej. SkyShadow"
+            />
+          </div>
+          <p class="hint hint--err" id="registerErr" role="alert" hidden></p>
+          <button type="button" class="btn btn--primary btn--block" id="btnRegister" style="margin-top: 0.5rem">
+            Crear cuenta
+          </button>
+
+          <p class="auth-divider">¿Ya tienes cuenta? <button class="topbar__link" id="goToLogin" style="background:none;border:none;cursor:pointer;padding:0;font-size:inherit;color:var(--primary,#a855f7);">Iniciar sesión</button></p>
+        </div>
+      </div>
+
+    </div><!-- /.auth-card -->
+
+    <!-- Admin setup (only shown if no admin exists) -->
+    <div class="auth-card" id="setupCard" style="margin-top:1.5rem;max-width:420px;width:100%;" hidden>
+      <h2 style="margin-bottom:0.25rem;font-size:1.1rem;">⚙️ Crear administrador</h2>
+      <p class="muted" style="margin-bottom:1.25rem;font-size:0.85rem;">Solo disponible si no hay administradores registrados.</p>
+      <div class="field">
+        <label for="setupEmail">Email del administrador</label>
+        <input type="email" id="setupEmail" autocomplete="email" placeholder="admin@torneos-mlbb.com" />
+      </div>
+      <div class="field">
+        <label for="setupPwd">Contraseña</label>
+        <input type="password" id="setupPwd" autocomplete="new-password" />
+      </div>
+      <p class="hint hint--err" id="setupErr" role="alert" hidden></p>
+      <button type="button" class="btn btn--primary btn--block" id="btnCreateAdmin">Crear Administrador</button>
+    </div>
+  </div><!-- /.auth-wrap -->
+
+  <script src="api-client.js"></script>
+  <script src="login.js"></script>
+</body>
+</html>

@@ -6,7 +6,8 @@
   var baseURL = window.location.origin;
 
   var token = null;
-  try { token = localStorage.getItem("adminToken"); } catch(e) {}
+  // Use a shared key so players and admins both persist their session
+  try { token = localStorage.getItem("authToken") || localStorage.getItem("adminToken"); } catch(e) {}
 
   function request(endpoint, options) {
     var url = baseURL + "/api" + endpoint;
@@ -53,15 +54,40 @@
     return post("/auth/login", { email: email, password: password })
       .then(function(res) {
         token = res.token;
-        try { localStorage.setItem("adminToken", token); } catch(e) {}
+        try {
+          localStorage.setItem("authToken", token);
+          localStorage.setItem("adminToken", token); // backwards compat
+        } catch(e) {}
         return res;
       });
+  }
+
+  function registerPlayer(email, password, mlId, nick) {
+    return post("/auth/register", { email: email, password: password, mlId: mlId, nick: nick })
+      .then(function(res) {
+        // Auto-login after register
+        if (res.token) {
+          token = res.token;
+          try {
+            localStorage.setItem("authToken", token);
+            localStorage.setItem("adminToken", token);
+          } catch(e) {}
+        }
+        return res;
+      });
+  }
+
+  function getMe() {
+    return get("/auth/me");
   }
 
   function logout() {
     return post("/auth/logout").catch(function() {}).then(function() {
       token = null;
-      try { localStorage.removeItem("adminToken"); } catch(e) {}
+      try {
+        localStorage.removeItem("authToken");
+        localStorage.removeItem("adminToken");
+      } catch(e) {}
     });
   }
 
@@ -84,7 +110,10 @@
 
   function clearToken() {
     token = null;
-    try { localStorage.removeItem("adminToken"); } catch(e) {}
+    try {
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("adminToken");
+    } catch(e) {}
   }
 
   // Torneos
@@ -125,6 +154,11 @@
     return get("/registros/torneo/" + torneoId);
   }
 
+  // Players
+  function getPlayers() {
+    return get("/auth/players");
+  }
+
   // Export
   global.apiClient = {
     baseURL: baseURL,
@@ -132,6 +166,8 @@
     clearToken: clearToken,
     login: login,
     logout: logout,
+    registerPlayer: registerPlayer,
+    getMe: getMe,
     checkSetupStatus: checkSetupStatus,
     setupAdmin: setupAdmin,
     changePassword: changePassword,
@@ -146,7 +182,8 @@
     getRegistros: getRegistros,
     createRegistro: createRegistro,
     deleteRegistro: deleteRegistro,
-    getRegistrosByTorneo: getRegistrosByTorneo
+    getRegistrosByTorneo: getRegistrosByTorneo,
+    getPlayers: getPlayers
   };
 
 })(typeof window !== "undefined" ? window : this);

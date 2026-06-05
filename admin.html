@@ -17,53 +17,21 @@
     <nav class="topbar__nav">
       <a class="topbar__link" href="torneo.html">Torneos</a>
       <a class="topbar__link" href="registro-equipos.html">Registro</a>
-      <button type="button" class="topbar__link" id="btnLogout" hidden>Salir</button>
+      <button type="button" class="topbar__link" id="btnLogout">Salir</button>
     </nav>
   </header>
 
-  <div class="wrap wrap--wide">
+  <!-- Checking auth (shown briefly while JS verifies) -->
+  <div class="wrap" id="authCheckBox" style="text-align:center;padding-top:4rem;">
+    <p class="muted">Verificando acceso…</p>
+  </div>
+
+  <div class="wrap wrap--wide" id="adminContent" hidden>
     <h1>Administración</h1>
     <p class="lead">Crea <strong>torneos con fecha y hora</strong>, revisa inscripciones, grupo de 8 y llaves. Sistema seguro con autenticación.</p>
 
-    <!-- Login -->
-    <div class="card login-box" id="loginBox">
-      <h2>Acceso Administrador</h2>
-      <div class="field">
-        <label for="adminEmail">Email</label>
-        <input type="email" id="adminEmail" autocomplete="email" placeholder="admin@torneos-mlbb.com" />
-      </div>
-      <div class="field">
-        <label for="adminPwd">Contraseña</label>
-        <input type="password" id="adminPwd" autocomplete="current-password" />
-      </div>
-      <p class="hint hint--err" id="pwdErr" role="alert"></p>
-      <button type="button" class="btn btn--primary btn--block" id="btnLogin">Entrar</button>
-      <p class="muted" style="margin-top: 1rem; text-align: center;" id="setupHintLine">
-        ¿Primera vez? <a href="#" id="btnShowSetup">Crear administrador</a>
-      </p>
-    </div>
-
-    <!-- Setup inicial -->
-    <div class="card login-box" id="setupBox" hidden>
-      <h2>Crear Administrador</h2>
-      <p class="muted">Solo disponible si no hay administradores registrados.</p>
-      <div class="field">
-        <label for="setupEmail">Email del administrador</label>
-        <input type="email" id="setupEmail" autocomplete="email" placeholder="admin@torneos-mlbb.com" />
-      </div>
-      <div class="field">
-        <label for="setupPwd">Contraseña</label>
-        <input type="password" id="setupPwd" autocomplete="new-password" />
-      </div>
-      <p class="hint hint--err" id="setupErr" role="alert"></p>
-      <button type="button" class="btn btn--primary btn--block" id="btnCreateAdmin">Crear Administrador</button>
-      <p class="muted" style="margin-top: 1rem; text-align: center;">
-        <a href="#" id="btnShowLogin">Volver al login</a>
-      </p>
-    </div>
-
     <!-- Panel Admin -->
-    <div class="panel" id="adminPanel" hidden>
+    <div class="panel" id="adminPanel">
       <!-- Torneos -->
       <div class="card">
         <h2>Torneos programados</h2>
@@ -118,6 +86,14 @@
         </div>
         <p class="hint" id="registryEmpty" hidden>No hay inscripciones guardadas.</p>
         <ul class="registry-list" id="registryList"></ul>
+      </div>
+
+      <!-- Jugadores registrados -->
+      <div class="card">
+        <h2>Jugadores registrados</h2>
+        <p class="muted">Cuentas creadas desde la página de <a href="login.html">Login / Mi cuenta</a>.</p>
+        <p class="hint" id="playersEmpty" hidden>No hay jugadores registrados aún.</p>
+        <ul class="registry-list" id="playersList"></ul>
       </div>
 
       <!-- Cambiar contraseña -->

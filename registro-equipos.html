@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#100d12" />
-  <meta name="description" content="Inscribe a tu equipo o jugador en los torneos de Mobile Legends de Sky Kings." />
+  <meta name="description" content="Inscribe a tu equipo en los torneos de Mobile Legends de Sky Kings." />
   <title>Registro de equipos — Sky Kings</title>
   <link rel="stylesheet" href="styles-simple.css" />
 </head>
@@ -17,19 +17,21 @@
     <nav class="topbar__nav">
       <a class="topbar__link" href="index.html">Inicio</a>
       <a class="topbar__link" href="torneo.html">Torneos</a>
+      <a class="topbar__link" href="login.html">Mi cuenta</a>
     </nav>
   </header>
 
   <div class="wrap wrap--wide">
     <h1>Registro de equipos</h1>
     <p class="lead">
-      Primero elige la <strong>categoría</strong> de tu inscripción. Solo verás <strong>torneos que aceptan esa modalidad</strong>.
-      Luego completa <strong>ID ML</strong>, <strong>nick</strong> y un <strong>capitán</strong> con <strong>celular</strong>.
+      El <strong>capitán</strong> registra el equipo eligiendo el torneo y categoría,
+      e ingresando sus datos de Mobile Legends y teléfono de contacto.
     </p>
 
     <p class="hint" id="regTorneosHint" role="status" hidden></p>
 
     <form id="registryForm" class="card" novalidate>
+      <!-- Categoría -->
       <div class="field">
         <label for="regCategory">Categoría de inscripción</label>
         <select id="regCategory" name="category" required>
@@ -41,6 +43,7 @@
         <p class="hint" id="categoryHint"></p>
       </div>
 
+      <!-- Torneo -->
       <div class="field">
         <label for="regTorneo">Torneo</label>
         <select id="regTorneo" name="torneoId" required></select>
@@ -49,30 +52,52 @@
         </p>
       </div>
 
+      <!-- Nombre del equipo (solo equipos) -->
       <div class="field" id="teamNameWrap" hidden>
         <label for="teamName">Nombre del equipo <span class="muted">(opcional)</span></label>
         <input type="text" id="teamName" name="teamName" maxlength="100" placeholder="Ej. Los del barrio" />
       </div>
 
+      <!-- Datos del capitán -->
       <fieldset class="reg-fieldset">
-        <legend id="titularLegend">Jugadores</legend>
-        <div id="playerFields" class="reg-player-fields"></div>
+        <legend>Datos del capitán</legend>
+        <div class="field">
+          <label for="captainMlId">ID ML del capitán</label>
+          <input
+            type="text"
+            id="captainMlId"
+            name="captainMlId"
+            maxlength="32"
+            inputmode="numeric"
+            placeholder="Ej. 123456789"
+            required
+          />
+        </div>
+        <div class="field">
+          <label for="captainNick">Nick en juego del capitán</label>
+          <input
+            type="text"
+            id="captainNick"
+            name="captainNick"
+            maxlength="80"
+            placeholder="Ej. SkyShadow"
+            required
+          />
+        </div>
+        <div class="field">
+          <label for="captainPhone">Teléfono del capitán</label>
+          <input
+            type="tel"
+            id="captainPhone"
+            name="captainPhone"
+            inputmode="tel"
+            autocomplete="tel"
+            maxlength="20"
+            placeholder="Ej. +52 55 1234 5678"
+            required
+          />
+        </div>
       </fieldset>
-
-      <div class="field">
-        <label for="captainPhone">Teléfono del capitán</label>
-        <input
-          type="tel"
-          id="captainPhone"
-          name="captainPhone"
-          inputmode="tel"
-          autocomplete="tel"
-          maxlength="20"
-          placeholder="Ej. +52 55 1234 5678"
-          required
-        />
-        <p class="hint">Solo el capitán debe completar este dato.</p>
-      </div>
 
       <p class="hint" id="regMsg" role="status"></p>
       <button type="submit" class="btn btn--primary btn--block" id="btnSubmitReg">Guardar inscripción</button>

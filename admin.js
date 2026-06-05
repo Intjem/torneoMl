@@ -6,40 +6,32 @@
   if (!api || !S) return;
 
   // DOM elements
-  var loginBox     = document.getElementById("loginBox");
-  var setupBox     = document.getElementById("setupBox");
-  var panel        = document.getElementById("adminPanel");
-  var adminEmail   = document.getElementById("adminEmail");
-  var adminPwd     = document.getElementById("adminPwd");
-  var pwdErr       = document.getElementById("pwdErr");
-  var btnLogin     = document.getElementById("btnLogin");
+  var authCheckBox = document.getElementById("authCheckBox");
+  var adminContent = document.getElementById("adminContent");
   var btnLogout    = document.getElementById("btnLogout");
-  var btnShowSetup = document.getElementById("btnShowSetup");
-  var btnShowLogin = document.getElementById("btnShowLogin");
-  var setupEmail   = document.getElementById("setupEmail");
-  var setupPwd     = document.getElementById("setupPwd");
-  var setupErr     = document.getElementById("setupErr");
-  var btnCreateAdmin = document.getElementById("btnCreateAdmin");
 
-  var torneoNombre     = document.getElementById("torneoNombre");
-  var torneoFecha      = document.getElementById("torneoFecha");
-  var torneoHora       = document.getElementById("torneoHora");
+  var torneoNombre      = document.getElementById("torneoNombre");
+  var torneoFecha       = document.getElementById("torneoFecha");
+  var torneoHora        = document.getElementById("torneoHora");
   var torneoTipoFormato = document.getElementById("torneoTipoFormato");
-  var torneoModalidad  = document.getElementById("torneoModalidad");
-  var btnAddTorneo     = document.getElementById("btnAddTorneo");
-  var torneoMsg        = document.getElementById("torneoMsg");
-  var torneoList       = document.getElementById("torneoList");
+  var torneoModalidad   = document.getElementById("torneoModalidad");
+  var btnAddTorneo      = document.getElementById("btnAddTorneo");
+  var torneoMsg         = document.getElementById("torneoMsg");
+  var torneoList        = document.getElementById("torneoList");
 
-  var registryList       = document.getElementById("registryList");
-  var registryEmpty      = document.getElementById("registryEmpty");
+  var registryList         = document.getElementById("registryList");
+  var registryEmpty        = document.getElementById("registryEmpty");
   var registryFilterTorneo = document.getElementById("registryFilterTorneo");
+
+  var playersList  = document.getElementById("playersList");
+  var playersEmpty = document.getElementById("playersEmpty");
 
   var currentPwd = document.getElementById("currentPwd");
   var newPwd     = document.getElementById("newPwd");
   var btnSavePwd = document.getElementById("btnSavePwd");
   var pwdMsg     = document.getElementById("pwdMsg");
 
-  var cachedTorneos = [];
+  var cachedTorneos   = [];
   var cachedRegistros = [];
 
   function showHint(el, text, isErr) {
@@ -48,111 +40,65 @@
     el.className = "hint" + (isErr ? " hint--err" : text ? " hint--ok" : "");
   }
 
-  // ── UI state ──
-  function updateUI() {
-    var loggedIn = api.isAuthenticated();
-    if (loginBox) loginBox.hidden = loggedIn;
-    if (setupBox) setupBox.hidden = true;
-    if (panel)    panel.hidden = !loggedIn;
-    if (btnLogout) btnLogout.hidden = !loggedIn;
-
-    if (loggedIn) {
-      loadAdminData();
-    } else {
-      // Si no estamos logged in, revisar si ya existe un admin para ocultar el link de creación
-      if (api.checkSetupStatus) {
-        api.checkSetupStatus().then(function(res) {
-          var setupHintLine = document.getElementById("setupHintLine");
-          if (setupHintLine) {
-            setupHintLine.hidden = res.hasAdmin;
-          }
-        }).catch(function(){}); // Si falla, que quede visible por defecto
-      }
+  // ── Auth guard ──
+  // Verify token has admin role before showing content
+  function checkAdminAccess() {
+    if (!api.isAuthenticated()) {
+      redirectToLogin();
+      return;
     }
-  }
 
-  // ── Auth ──
-  function handleLogin() {
-    var email = adminEmail ? adminEmail.value.trim() : "";
-    var pwd   = adminPwd ? adminPwd.value : "";
-    if (!email || !pwd) { showHint(pwdErr, "Email y contraseña requeridos", true); return; }
-
-    if (btnLogin) btnLogin.disabled = true;
-    showHint(pwdErr, "");
-
-    api.login(email, pwd)
-      .then(function() {
-        if (btnLogin) btnLogin.disabled = false;
-        updateUI();
+    api.getMe()
+      .then(function(res) {
+        var user = res.user;
+        if (!user || (user.role !== "admin" && user.role !== "superadmin")) {
+          redirectToLogin();
+          return;
+        }
+        // Access granted
+        if (authCheckBox) authCheckBox.hidden = true;
+        if (adminContent) adminContent.hidden = false;
+        loadAdminData();
       })
       .catch(function(err) {
-        if (btnLogin) btnLogin.disabled = false;
-        showHint(pwdErr, err.message || "Error de login", true);
+        // Token invalid or expired
+        api.clearToken();
+        redirectToLogin();
       });
   }
 
-  function handleLogout() {
-    api.logout().then(function() { updateUI(); }).catch(function() { updateUI(); });
+  function redirectToLogin() {
+    window.location.href = "login.html";
   }
 
-  function handleSetup() {
-    var email = setupEmail ? setupEmail.value.trim() : "";
-    var pwd   = setupPwd ? setupPwd.value : "";
-    if (!email || !pwd) { showHint(setupErr, "Email y contraseña requeridos", true); return; }
-    if (pwd.length < 4) { showHint(setupErr, "Mínimo 4 caracteres", true); return; }
-
-    if (btnCreateAdmin) btnCreateAdmin.disabled = true;
-    showHint(setupErr, "");
-
-    api.setupAdmin(email, pwd)
-      .then(function() {
-        showHint(setupErr, "✅ Admin creado. Ahora haz login.", false);
-        setTimeout(function() {
-          if (loginBox) loginBox.hidden = false;
-          if (setupBox) setupBox.hidden = true;
-        }, 2000);
-      })
-      .catch(function(err) {
-        showHint(setupErr, err.message, true);
-        if (btnCreateAdmin) btnCreateAdmin.disabled = false;
-      });
-  }
-
-  function handleChangePassword() {
-    var cur = currentPwd ? currentPwd.value : "";
-    var np  = newPwd ? newPwd.value : "";
-    if (!cur || !np) { showHint(pwdMsg, "Ambas contraseñas requeridas", true); return; }
-    if (np.length < 4) { showHint(pwdMsg, "Mínimo 4 caracteres", true); return; }
-
-    if (btnSavePwd) btnSavePwd.disabled = true;
-    api.changePassword(cur, np)
-      .then(function() {
-        showHint(pwdMsg, "Contraseña actualizada", false);
-        if (currentPwd) currentPwd.value = "";
-        if (newPwd) newPwd.value = "";
-      })
-      .catch(function(err) {
-        showHint(pwdMsg, err.message, true);
-        if (btnSavePwd) btnSavePwd.disabled = false;
-      });
+  // ── Logout ──
+  if (btnLogout) {
+    btnLogout.addEventListener("click", function() {
+      api.logout().then(redirectToLogin).catch(redirectToLogin);
+    });
   }
 
   // ── Load data ──
   function loadAdminData() {
-    Promise.all([api.getTorneos(), api.getRegistros()])
+    Promise.all([
+      api.getTorneos(),
+      api.getRegistros(),
+      api.getPlayers ? api.getPlayers() : Promise.resolve([])
+    ])
       .then(function(results) {
-        cachedTorneos = results[0] || [];
+        cachedTorneos   = results[0] || [];
         cachedRegistros = results[1] || [];
+        var players     = results[2] || [];
         renderTorneoList();
         renderTorneoFilter();
         renderRegistryList();
+        renderPlayersList(players);
       })
       .catch(function(err) {
         console.error("Error loading admin data:", err);
-        // If unauthorized, go back to login
-        if (err.status === 401) {
+        if (err.status === 401 || err.status === 403) {
           api.clearToken();
-          updateUI();
+          redirectToLogin();
         }
       });
   }
@@ -201,7 +147,6 @@
       var actions = document.createElement("div");
       actions.className = "torneo-admin-item__actions";
 
-      // Estado change buttons
       var st = t.estado || "inscripcion";
       if (st === "inscripcion") {
         actions.appendChild(makeBtn("Iniciar torneo", "btn--primary", function() {
@@ -226,14 +171,12 @@
         }));
       }
 
-      // Public link
       var link = document.createElement("a");
       link.className = "btn btn--ghost";
       link.href = "torneo.html?id=" + encodeURIComponent(S.getId(t));
       link.textContent = "Vista pública";
       actions.appendChild(link);
 
-      // Delete
       actions.appendChild(makeBtn("Eliminar", "btn--ghost", function() {
         if (!confirm("¿Eliminar este torneo?")) return;
         api.deleteTorneo(S.getId(t)).then(loadAdminData)
@@ -258,10 +201,10 @@
   function handleAddTorneo() {
     showHint(torneoMsg, "");
     var nom = torneoNombre ? torneoNombre.value.trim() : "";
-    var fe  = torneoFecha ? torneoFecha.value : "";
-    var ho  = torneoHora ? torneoHora.value : "";
+    var fe  = torneoFecha  ? torneoFecha.value          : "";
+    var ho  = torneoHora   ? torneoHora.value            : "";
     var tf  = torneoTipoFormato ? torneoTipoFormato.value : "eliminatoria";
-    var mod = torneoModalidad ? torneoModalidad.value : "";
+    var mod = torneoModalidad ? torneoModalidad.value    : "";
 
     if (!nom) { showHint(torneoMsg, "Indica el nombre", true); return; }
     if (!fe)  { showHint(torneoMsg, "Indica la fecha", true); return; }
@@ -273,8 +216,8 @@
       .then(function() {
         showHint(torneoMsg, "Torneo añadido", false);
         if (torneoNombre) torneoNombre.value = "";
-        if (torneoFecha) torneoFecha.value = "";
-        if (torneoHora) torneoHora.value = "";
+        if (torneoFecha)  torneoFecha.value = "";
+        if (torneoHora)   torneoHora.value = "";
         if (torneoModalidad) torneoModalidad.selectedIndex = 0;
         loadAdminData();
       })
@@ -304,7 +247,7 @@
     registryList.innerHTML = "";
 
     var filterVal = registryFilterTorneo ? registryFilterTorneo.value : "";
-    var filtered = cachedRegistros.filter(function(ent) {
+    var filtered  = cachedRegistros.filter(function(ent) {
       if (!filterVal) return true;
       var entTid = ent.torneoId ? (ent.torneoId._id || ent.torneoId) : "";
       return entTid === filterVal;
@@ -375,31 +318,69 @@
     });
   }
 
-  // ── Event listeners ──
-  if (btnLogin)     btnLogin.addEventListener("click", handleLogin);
-  if (btnLogout)    btnLogout.addEventListener("click", handleLogout);
-  if (btnShowSetup) btnShowSetup.addEventListener("click", function(e) {
-    e.preventDefault();
-    if (loginBox) loginBox.hidden = true;
-    if (setupBox) setupBox.hidden = false;
-  });
-  if (btnShowLogin) btnShowLogin.addEventListener("click", function(e) {
-    e.preventDefault();
-    if (loginBox) loginBox.hidden = false;
-    if (setupBox) setupBox.hidden = true;
-  });
-  if (btnCreateAdmin) btnCreateAdmin.addEventListener("click", handleSetup);
-  if (btnAddTorneo)   btnAddTorneo.addEventListener("click", handleAddTorneo);
-  if (btnSavePwd)     btnSavePwd.addEventListener("click", handleChangePassword);
+  // ── Players list ──
+  function renderPlayersList(players) {
+    if (!playersList) return;
+    playersList.innerHTML = "";
 
-  if (adminPwd) adminPwd.addEventListener("keydown", function(e) {
-    if (e.key === "Enter") handleLogin();
-  });
+    if (!players || players.length === 0) {
+      if (playersEmpty) playersEmpty.hidden = false;
+      return;
+    }
+    if (playersEmpty) playersEmpty.hidden = true;
+
+    players.forEach(function(p) {
+      var li = document.createElement("li");
+      li.className = "registry-card";
+
+      var head = document.createElement("div");
+      head.className = "registry-card__head";
+      var strong = document.createElement("strong");
+      strong.textContent = p.nick || p.email;
+      head.appendChild(strong);
+      li.appendChild(head);
+
+      var meta = document.createElement("p");
+      meta.className = "muted registry-card__meta";
+      var parts = [];
+      if (p.mlId)  parts.push("ID ML: " + p.mlId);
+      if (p.email) parts.push("Email: " + p.email);
+      if (p.createdAt) parts.push("Desde: " + new Date(p.createdAt).toLocaleDateString());
+      meta.textContent = parts.join(" · ");
+      li.appendChild(meta);
+
+      playersList.appendChild(li);
+    });
+  }
+
+  // ── Change password ──
+  function handleChangePassword() {
+    var cur = currentPwd ? currentPwd.value : "";
+    var np  = newPwd ? newPwd.value : "";
+    if (!cur || !np) { showHint(pwdMsg, "Ambas contraseñas requeridas", true); return; }
+    if (np.length < 4) { showHint(pwdMsg, "Mínimo 4 caracteres", true); return; }
+
+    if (btnSavePwd) btnSavePwd.disabled = true;
+    api.changePassword(cur, np)
+      .then(function() {
+        showHint(pwdMsg, "Contraseña actualizada", false);
+        if (currentPwd) currentPwd.value = "";
+        if (newPwd) newPwd.value = "";
+      })
+      .catch(function(err) {
+        showHint(pwdMsg, err.message, true);
+        if (btnSavePwd) btnSavePwd.disabled = false;
+      });
+  }
+
+  // ── Event listeners ──
+  if (btnAddTorneo) btnAddTorneo.addEventListener("click", handleAddTorneo);
+  if (btnSavePwd)   btnSavePwd.addEventListener("click", handleChangePassword);
 
   if (registryFilterTorneo) {
     registryFilterTorneo.addEventListener("change", renderRegistryList);
   }
 
-  // Init
-  updateUI();
+  // ── Init: verify admin access ──
+  checkAdminAccess();
 })();
