@@ -10,7 +10,6 @@ require('dotenv').config();
 
 const authRoutes     = require('./routes/auth');
 const torneoRoutes   = require('./routes/torneos');
-const registroRoutes = require('./routes/registros');
 const equipoRoutes   = require('./routes/equipos');
 
 const app = express();
@@ -72,7 +71,6 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/torneos-m
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/torneos', torneoRoutes);
-app.use('/api/registros', registroRoutes);
 app.use('/api/equipos', equipoRoutes);
 
 // Health check

@@ -19,7 +19,6 @@
   var joinMsg        = document.getElementById("joinMsg");
 
   // Inscribir panel
-  var captainVerifyId  = document.getElementById("captainVerifyId");
   var btnVerifyCaptain = document.getElementById("btnVerifyCaptain");
   var verifyErr        = document.getElementById("verifyErr");
   var captainEquipos   = document.getElementById("captainEquipos");
@@ -29,8 +28,6 @@
   // Join modal
   var joinModal      = document.getElementById("joinModal");
   var modalTitle     = document.getElementById("modalTitle");
-  var joinMlId       = document.getElementById("joinMlId");
-  var joinNick       = document.getElementById("joinNick");
   var joinSub        = document.getElementById("joinSub");
   var joinSubField   = document.getElementById("joinSubField");
   var joinModalErr   = document.getElementById("joinModalErr");
@@ -190,24 +187,18 @@
 
   function closeJoinModal() {
     if (joinModal) joinModal.style.display = "none";
-    if (joinMlId) joinMlId.value = "";
-    if (joinNick) joinNick.value = "";
     currentJoinTarget = null;
   }
 
   function handleJoinSubmit() {
-    var mlId = joinMlId ? joinMlId.value.trim() : "";
-    var nick = joinNick ? joinNick.value.trim() : "";
     var isSub = joinSub ? joinSub.checked : false;
 
-    if (!mlId) { showHint(joinModalErr, "Ingresa tu ID ML", true); return; }
-    if (!nick) { showHint(joinModalErr, "Ingresa tu nick", true); return; }
     if (!currentJoinTarget) return;
 
     if (btnJoinConfirm) btnJoinConfirm.disabled = true;
     showHint(joinModalErr, "Uniéndose...", false);
 
-    api.joinEquipo(currentJoinTarget, { mlId: mlId, nick: nick, substitute: isSub })
+    api.joinEquipo(currentJoinTarget, { substitute: isSub })
       .then(function() {
         closeJoinModal();
         loadEquiposToJoin(); // refresh
@@ -222,30 +213,38 @@
 
   // ── Inscribir Panel (Captain Verify) ──
   function handleVerifyCaptain() {
-    var cId = captainVerifyId ? captainVerifyId.value.trim() : "";
-    if (!cId) { showHint(verifyErr, "Ingresa tu ID ML", true); return; }
-    
     if (btnVerifyCaptain) btnVerifyCaptain.disabled = true;
-    showHint(verifyErr, "Buscando...", false);
+    showHint(verifyErr, "Buscando tus equipos...", false);
 
-    // Get all equipos, then filter in client to those where captain.mlId == cId
-    api.getEquipos().then(function(all) {
-      var myTeams = all.filter(function(eq) {
-        return eq.captain && eq.captain.mlId === cId;
-      });
-
-      if (myTeams.length === 0) {
-        showHint(verifyErr, "No encontramos ningún equipo donde seas capitán con este ID.", true);
-        if (captainEquipos) captainEquipos.hidden = true;
-      } else {
-        showHint(verifyErr, "", false);
-        renderCaptainEquipos(myTeams, cId);
+    api.getMe().then(function(user) {
+      var cId = user.mlId;
+      if (!cId) {
+        showHint(verifyErr, "Tu cuenta no tiene un ID ML configurado. Completa tu registro.", true);
+        if (btnVerifyCaptain) btnVerifyCaptain.disabled = false;
+        return;
       }
-    })
-    .catch(function(err) {
-      showHint(verifyErr, err.message || "Error buscando equipos.", true);
-    })
-    .finally(function() {
+
+      api.getEquipos().then(function(all) {
+        var myTeams = all.filter(function(eq) {
+          return eq.captain && eq.captain.mlId === cId;
+        });
+
+        if (myTeams.length === 0) {
+          showHint(verifyErr, "No encontramos ningún equipo donde seas capitán.", true);
+          if (captainEquipos) captainEquipos.hidden = true;
+        } else {
+          showHint(verifyErr, "", false);
+          renderCaptainEquipos(myTeams, cId);
+        }
+      })
+      .catch(function(err) {
+        showHint(verifyErr, err.message || "Error buscando equipos.", true);
+      })
+      .finally(function() {
+        if (btnVerifyCaptain) btnVerifyCaptain.disabled = false;
+      });
+    }).catch(function() {
+      showHint(verifyErr, "Error validando sesión.", true);
       if (btnVerifyCaptain) btnVerifyCaptain.disabled = false;
     });
   }
@@ -359,7 +358,7 @@
     if (btnInscribirConfirm) btnInscribirConfirm.disabled = true;
     showHint(inscribirModalErr, "Inscribiendo...", false);
 
-    api.inscribirEquipo(currentInscribirTarget, tId, currentCaptainMlIdForInscription)
+    api.inscribirEquipo(currentInscribirTarget, tId)
       .then(function() {
         closeInscribirModal();
         handleVerifyCaptain(); // Refresh list
@@ -381,7 +380,6 @@
   if (btnJoinConfirm) btnJoinConfirm.addEventListener("click", handleJoinSubmit);
 
   if (btnVerifyCaptain) btnVerifyCaptain.addEventListener("click", handleVerifyCaptain);
-  if (captainVerifyId) captainVerifyId.addEventListener("keydown", function(e) { if(e.key === "Enter") handleVerifyCaptain(); });
 
   if (btnInscribirCancel) btnInscribirCancel.addEventListener("click", closeInscribirModal);
   if (btnInscribirConfirm) btnInscribirConfirm.addEventListener("click", handleInscribirSubmit);
@@ -395,5 +393,12 @@
   // ── Init ──
   loadTorneos();
   loadEquiposToJoin();
+
+  // Load captain teams automatically if tab changes
+  if (tabInscribir) {
+    tabInscribir.addEventListener("click", function() {
+      handleVerifyCaptain();
+    });
+  }
 
 })();

@@ -140,18 +140,11 @@
     return put("/torneos/" + id + "/knockout/results", { knockoutBracket: knockoutBracket });
   }
 
-  // Registros
-  function getRegistros(filters) {
-    var params = filters ? "?" + new URLSearchParams(filters).toString() : "";
-    return get("/registros" + params);
-  }
-
-  function createRegistro(data) { return post("/registros", data); }
-
-  function deleteRegistro(id) { return del("/registros/" + id); }
-
-  function getRegistrosByTorneo(torneoId) {
-    return get("/registros/torneo/" + torneoId);
+  // Autenticación Check Global
+  var currentPath = window.location.pathname.toLowerCase();
+  var isLoginPage = currentPath.endsWith("login.html");
+  if (!isAuthenticated() && !isLoginPage) {
+    window.location.href = "login.html";
   }
 
   // Equipos
@@ -172,8 +165,8 @@
     return post("/equipos/" + id + "/join", data);
   }
 
-  function inscribirEquipo(id, torneoId, captainMlId) {
-    return post("/equipos/" + id + "/inscribir", { torneoId: torneoId, captainMlId: captainMlId });
+  function inscribirEquipo(id, torneoId) {
+    return post("/equipos/" + id + "/inscribir", { torneoId: torneoId });
   }
 
   // Players
@@ -201,10 +194,6 @@
     updateBracket: updateBracket,
     generateKnockout: generateKnockout,
     updateKnockoutResults: updateKnockoutResults,
-    getRegistros: getRegistros,
-    createRegistro: createRegistro,
-    deleteRegistro: deleteRegistro,
-    getRegistrosByTorneo: getRegistrosByTorneo,
     getPlayers: getPlayers,
     getEquipos: getEquipos,
     getEquipo: getEquipo,

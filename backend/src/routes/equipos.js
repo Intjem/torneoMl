@@ -50,14 +50,14 @@ router.get('/:id', async (req, res) => {
 });
 
 // ── POST create equipo (captain) ───────────────────────────────────────────────
-router.post('/', async (req, res) => {
+router.post('/', auth, async (req, res) => {
   try {
-    const { teamName, category, captainMlId, captainNick, captainPhone } = req.body;
+    const { teamName, category, captainPhone } = req.body;
 
     if (!category)    return res.status(400).json({ error: 'La categoría es requerida' });
-    if (!captainMlId) return res.status(400).json({ error: 'El ID ML del capitán es requerido' });
-    if (!captainNick) return res.status(400).json({ error: 'El nick del capitán es requerido' });
-    if (!captainPhone)return res.status(400).json({ error: 'El teléfono del capitán es requerido' });
+    if (!req.user.mlId) return res.status(400).json({ error: 'Debes tener un ID ML en tu perfil' });
+    if (!req.user.nick) return res.status(400).json({ error: 'Debes tener un nick en tu perfil' });
+    if (!captainPhone)return res.status(400).json({ error: 'El teléfono de contacto es requerido' });
 
     // Prevent duplicate captain in same category (optional: allow multiple teams)
     // Skipped for flexibility
@@ -66,8 +66,8 @@ router.post('/', async (req, res) => {
       teamName: teamName ? teamName.trim() : undefined,
       category,
       captain: {
-        mlId:  captainMlId.trim(),
-        nick:  captainNick.trim(),
+        mlId:  req.user.mlId,
+        nick:  req.user.nick,
         phone: captainPhone.trim()
       },
       players: [],
@@ -87,10 +87,12 @@ router.post('/', async (req, res) => {
 });
 
 // ── POST join equipo (any player) ─────────────────────────────────────────────
-router.post('/:id/join', async (req, res) => {
+router.post('/:id/join', auth, async (req, res) => {
   try {
-    const { mlId, nick, substitute } = req.body;
-    if (!mlId || !nick) return res.status(400).json({ error: 'ID ML y nick son requeridos' });
+    const { substitute } = req.body;
+    const { mlId, nick } = req.user;
+    
+    if (!mlId || !nick) return res.status(400).json({ error: 'Necesitas tener ID ML y nick en tu perfil para unirte' });
 
     const equipo = await Equipo.findById(req.params.id);
     if (!equipo) return res.status(404).json({ error: 'Equipo no encontrado' });
@@ -130,18 +132,20 @@ router.post('/:id/join', async (req, res) => {
 });
 
 // ── POST inscribir equipo a torneo (captain only, verified by mlId) ────────────
-router.post('/:id/inscribir', async (req, res) => {
+router.post('/:id/inscribir', auth, async (req, res) => {
   try {
-    const { torneoId, captainMlId } = req.body;
+    const { torneoId } = req.body;
+    const captainMlId = req.user.mlId;
+    
     if (!torneoId)    return res.status(400).json({ error: 'Selecciona un torneo' });
-    if (!captainMlId) return res.status(400).json({ error: 'Tu ID ML es requerido para verificar que eres el capitán' });
+    if (!captainMlId) return res.status(400).json({ error: 'Necesitas un ID ML en tu cuenta' });
 
     const equipo = await Equipo.findById(req.params.id);
     if (!equipo) return res.status(404).json({ error: 'Equipo no encontrado' });
 
     // Verify captain identity
     if (equipo.captain.mlId !== captainMlId.trim()) {
-      return res.status(403).json({ error: 'Solo el capitán puede inscribir el equipo (ID ML no coincide)' });
+      return res.status(403).json({ error: 'Solo el capitán puede inscribir el equipo (ID ML no coincide con tu cuenta)' });
     }
 
     if (equipo.status === 'inscrito') {

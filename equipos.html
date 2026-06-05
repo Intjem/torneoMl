@@ -231,19 +231,9 @@
         elegir a qué torneo inscribirlos.
       </p>
 
-      <div class="captain-verify">
-        <h3>Verificar capitán</h3>
-        <div class="field">
-          <label for="captainVerifyId">Tu ID de Mobile Legends</label>
-          <input
-            type="text"
-            id="captainVerifyId"
-            maxlength="32"
-            inputmode="numeric"
-            placeholder="Ej. 123456789"
-          />
-        </div>
-        <button type="button" class="btn btn--primary" id="btnVerifyCaptain">Buscar mis equipos</button>
+      <div class="captain-verify" id="captainVerifyWrap" hidden>
+        <!-- Retained for backward compat, but we auto-load based on login now -->
+        <button type="button" class="btn btn--primary" id="btnVerifyCaptain">Cargar mis equipos</button>
         <p class="hint hint--err" id="verifyErr" hidden></p>
       </div>
 
@@ -259,14 +249,7 @@
   <div id="joinModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:100; align-items:center; justify-content:center; padding:1rem;">
     <div style="background:var(--surface,#1a1625); border:1px solid var(--border,#2d2640); border-radius:16px; padding:1.75rem; width:100%; max-width:420px; max-height:90vh; overflow-y:auto;">
       <h2 id="modalTitle" style="margin-bottom:1.25rem; font-size:1.1rem;">Unirse al equipo</h2>
-      <div class="field">
-        <label for="joinMlId">Tu ID de Mobile Legends</label>
-        <input type="text" id="joinMlId" maxlength="32" inputmode="numeric" placeholder="Ej. 123456789" />
-      </div>
-      <div class="field">
-        <label for="joinNick">Tu nick en juego</label>
-        <input type="text" id="joinNick" maxlength="80" placeholder="Ej. SkyShadow" />
-      </div>
+      <p class="muted" style="margin-bottom:1rem; font-size:0.9rem;">Tus datos (Nick e ID) se tomarán de tu cuenta automáticamente.</p>
       <div class="field" id="joinSubField">
         <label style="display:flex; align-items:center; gap:0.6rem; cursor:pointer; font-weight:500;">
           <input type="checkbox" id="joinSub" style="width:18px;height:18px;" />

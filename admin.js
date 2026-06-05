@@ -82,12 +82,12 @@
   function loadAdminData() {
     Promise.all([
       api.getTorneos(),
-      api.getRegistros(),
+      api.getEquipos(),
       api.getPlayers ? api.getPlayers() : Promise.resolve([])
     ])
       .then(function(results) {
         cachedTorneos   = results[0] || [];
-        cachedRegistros = results[1] || [];
+        cachedRegistros = results[1] || []; // Actually equipos
         var players     = results[2] || [];
         renderTorneoList();
         renderTorneoFilter();
@@ -256,9 +256,9 @@
     if (registryEmpty) {
       registryEmpty.hidden = filtered.length > 0;
       registryEmpty.textContent = cachedRegistros.length === 0
-        ? "No hay inscripciones guardadas."
+        ? "No hay equipos guardados."
         : filtered.length === 0
-        ? "Ninguna inscripción para este torneo."
+        ? "Ningún equipo para este torneo."
         : "";
     }
 
@@ -293,12 +293,17 @@
 
       var ul = document.createElement("ul");
       ul.className = "registry-players";
+      
+      if (ent.captain) {
+        var pli = document.createElement("li");
+        pli.textContent = ent.captain.nick + " (ID: " + ent.captain.mlId + ") · Capitán · Tel: " + ent.captain.phone;
+        ul.appendChild(pli);
+      }
+      
       (ent.players || []).forEach(function(p) {
         var pli = document.createElement("li");
         var parts = [p.nick || "—", " (ID: " + (p.mlId || "—") + ")"];
-        if (p.role === "captain") parts.push(" · Capitán");
         if (p.substitute) parts.push(" · Suplente");
-        if (p.role === "captain" && p.phone) parts.push(" · Tel: " + p.phone);
         pli.textContent = parts.join("");
         ul.appendChild(pli);
       });
@@ -307,11 +312,13 @@
       var delBtn = document.createElement("button");
       delBtn.type = "button";
       delBtn.className = "btn btn--ghost registry-card__del";
-      delBtn.textContent = "Eliminar inscripción";
+      delBtn.textContent = "Eliminar equipo";
       delBtn.addEventListener("click", function() {
-        if (!confirm("¿Eliminar esta inscripción?")) return;
-        api.deleteRegistro(S.getId(ent)).then(loadAdminData)
-          .catch(function(e) { alert(e.message); });
+        if (!confirm("¿Eliminar este equipo de la base de datos?")) return;
+        // The backend `delete /api/equipos/:id` will handle it
+        api.deleteEquipo(S.getId(ent))
+          .then(function() { return loadAdminData(); })
+          .catch(function(e) { alert(e.message || "Error"); });
       });
       li.appendChild(delBtn);
       registryList.appendChild(li);

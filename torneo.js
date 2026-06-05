@@ -195,7 +195,7 @@
     // Detail mode
     Promise.all([
       api.getTorneo(id.trim()),
-      api.getRegistrosByTorneo(id.trim())
+      api.getEquipos({ torneoId: id.trim(), status: 'inscrito' })
     ]).then(function(results) {
       renderDetail(results[0], results[1]);
     }).catch(function(err) {
@@ -224,7 +224,7 @@
     if (id && id.trim()) {
       Promise.all([
         api.getTorneo(id.trim()),
-        api.getRegistrosByTorneo(id.trim())
+        api.getEquipos({ torneoId: id.trim(), status: 'inscrito' })
       ]).then(function(r) { renderDetail(r[0], r[1]); }).catch(function() {});
     } else {
       api.getTorneos().then(function(t) { renderList(t); }).catch(function() {});

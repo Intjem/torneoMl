@@ -40,11 +40,15 @@
   function entrySummary(ent) {
     var parts = [];
     if (ent.teamName) parts.push(ent.teamName);
-    var names = (ent.players || []).map(function(p) {
+    var names = [];
+    if (ent.captain) {
+      names.push(ent.captain.nick + " (ID " + ent.captain.mlId + ") · Capitán");
+    }
+    (ent.players || []).forEach(function(p) {
       var s = (p.nick || "—") + " (ID " + (p.mlId || "—") + ")";
       if (p.role === "captain") s += " · Capitán";
       if (p.substitute) s += " · Suplente";
-      return s;
+      names.push(s);
     });
     if (names.length) parts.push(names.join(" · "));
     return parts.join(" — ") || "Inscripción";

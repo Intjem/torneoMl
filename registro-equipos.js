@@ -18,8 +18,6 @@
   var categoryEl   = document.getElementById("regCategory");
   var categoryHint = document.getElementById("categoryHint");
   var teamNameWrap = document.getElementById("teamNameWrap");
-  var captainMlId  = document.getElementById("captainMlId");
-  var captainNick  = document.getElementById("captainNick");
   var captainPhone = document.getElementById("captainPhone");
   var regMsg       = document.getElementById("regMsg");
   var btnSubmit    = document.getElementById("btnSubmitReg");
@@ -49,14 +47,10 @@
     showHint(regMsg, "", false);
 
     var cat   = categoryEl   ? categoryEl.value.trim()   : "4v4";
-    var mlId  = captainMlId  ? captainMlId.value.trim()  : "";
-    var nick  = captainNick  ? captainNick.value.trim()   : "";
     var phone = normalizePhone(captainPhone ? captainPhone.value : "");
     var tnEl  = document.getElementById("teamName");
     var teamName = tnEl && !teamNameWrap.hidden ? tnEl.value.trim() : "";
 
-    if (!mlId)         { showHint(regMsg, "Ingresa tu ID de Mobile Legends.", true); return; }
-    if (!nick)         { showHint(regMsg, "Ingresa tu nick en juego.", true); return; }
     if (!isPhoneOk(phone)) { showHint(regMsg, "Teléfono: al menos 8 dígitos.", true); return; }
 
     if (btnSubmit) btnSubmit.disabled = true;
@@ -65,15 +59,13 @@
     api.createEquipo({
       teamName:    teamName || undefined,
       category:    cat,
-      captainMlId: mlId,
-      captainNick: nick,
       captainPhone: phone
     })
     .then(function(res) {
       var equipo = res.equipo || res;
       if (form)       form.hidden = true;
       if (successBox) successBox.hidden = false;
-      if (successTitle) successTitle.textContent = "¡Equipo \"" + (equipo.teamName || nick + "'s team") + "\" creado!";
+      if (successTitle) successTitle.textContent = "¡Equipo \"" + (equipo.teamName || "Mi equipo") + "\" creado!";
       if (successMsg) {
         successMsg.textContent =
           "Categoría: " + cat.toUpperCase() +
