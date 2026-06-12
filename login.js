@@ -123,6 +123,11 @@
       .then(function(res) {
         var user = res.user || res.admin;
         if (!user) throw new Error("Respuesta inesperada del servidor.");
+        
+        // Guardar token y usuario en localStorage
+        localStorage.setItem('userToken', res.token);
+        localStorage.setItem('currentUser', JSON.stringify(user));
+        
         showWelcome(user);
       })
       .catch(function(err) {
@@ -142,6 +147,10 @@
   if (btnWelcomeLogout) {
     btnWelcomeLogout.addEventListener("click", function() {
       api.logout().then(function() {
+        // Limpiar localStorage
+        localStorage.removeItem('userToken');
+        localStorage.removeItem('currentUser');
+        
         if (loginFormBox) loginFormBox.hidden = false;
         if (welcomeBox)   welcomeBox.hidden = true;
         if (loginEmail) loginEmail.value = "";
@@ -171,6 +180,10 @@
 
     api.registerPlayer(email, pwd, mlId, nick)
       .then(function(res) {
+        // Guardar token y usuario en localStorage
+        localStorage.setItem('userToken', res.token);
+        localStorage.setItem('currentUser', JSON.stringify(res.user));
+        
         // Show success
         if (registerFormBox)    registerFormBox.hidden = true;
         if (registerSuccessBox) registerSuccessBox.hidden = false;

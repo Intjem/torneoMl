@@ -8,16 +8,18 @@
   <title>Crear equipo — Sky Kings</title>
   <link rel="stylesheet" href="styles-simple.css" />
 </head>
-<body>
+<body data-require-auth="true">
   <header class="topbar">
     <a class="topbar__brand" href="index.html" aria-label="Sky Kings - Inicio">
       <img class="brand-logo" src="assets/sky-kings-logo.png" alt="" />
       <span class="brand-word">Sky <span>Kings</span></span>
     </a>
     <nav class="topbar__nav">
+      <span class="topbar__link user-info">Usuario</span>
       <a class="topbar__link" href="index.html">Inicio</a>
       <a class="topbar__link" href="torneo.html">Torneos</a>
       <a class="topbar__link" href="equipos.html">Equipos</a>
+      <button class="topbar__link" id="logoutBtn" style="background:none;border:none;cursor:pointer;padding:0;font-size:inherit;">Cerrar sesión</button>
     </nav>
   </header>
 
@@ -87,6 +89,7 @@
     </p>
   </div>
 
+  <script src="auth.js"></script>
   <script src="api-client.js"></script>
   <script src="registro-equipos.js"></script>
 </body>

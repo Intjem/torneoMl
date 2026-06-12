@@ -7,7 +7,7 @@
 
   var token = null;
   // Use a shared key so players and admins both persist their session
-  try { token = localStorage.getItem("authToken") || localStorage.getItem("adminToken"); } catch(e) {}
+  try { token = localStorage.getItem("userToken") || localStorage.getItem("authToken") || localStorage.getItem("adminToken"); } catch(e) {}
 
   function request(endpoint, options) {
     var url = baseURL + "/api" + endpoint;
@@ -55,7 +55,8 @@
       .then(function(res) {
         token = res.token;
         try {
-          localStorage.setItem("authToken", token);
+          localStorage.setItem("userToken", token);
+          localStorage.setItem("authToken", token); // backwards compat
           localStorage.setItem("adminToken", token); // backwards compat
         } catch(e) {}
         return res;
@@ -69,6 +70,7 @@
         if (res.token) {
           token = res.token;
           try {
+            localStorage.setItem("userToken", token);
             localStorage.setItem("authToken", token);
             localStorage.setItem("adminToken", token);
           } catch(e) {}
@@ -85,8 +87,10 @@
     return post("/auth/logout").catch(function() {}).then(function() {
       token = null;
       try {
+        localStorage.removeItem("userToken");
         localStorage.removeItem("authToken");
         localStorage.removeItem("adminToken");
+        localStorage.removeItem("currentUser");
       } catch(e) {}
     });
   }
@@ -138,13 +142,6 @@
 
   function updateKnockoutResults(id, knockoutBracket) {
     return put("/torneos/" + id + "/knockout/results", { knockoutBracket: knockoutBracket });
-  }
-
-  // Autenticación Check Global
-  var currentPath = window.location.pathname.toLowerCase();
-  var isLoginPage = currentPath.endsWith("login.html");
-  if (!isAuthenticated() && !isLoginPage) {
-    window.location.href = "login.html";
   }
 
   // Equipos

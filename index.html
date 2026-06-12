@@ -8,26 +8,40 @@
   <title>Sky Kings — Torneos MLBB</title>
   <link rel="stylesheet" href="styles-simple.css" />
 </head>
-<body>
+<body data-require-auth="true">
   <header class="topbar">
     <a class="topbar__brand" href="index.html" aria-label="Sky Kings - Inicio">
       <img class="brand-logo" src="assets/sky-kings-logo.png" alt="" />
       <span class="brand-word">Sky <span>Kings</span></span>
     </a>
+    <nav class="topbar__nav">
+      <span class="topbar__link user-info">Usuario</span>
+      <button class="topbar__link" id="logoutBtn" style="background:none;border:none;cursor:pointer;padding:0;font-size:inherit;">Cerrar sesión</button>
+    </nav>
   </header>
 
   <main class="landing">
     <img class="landing__logo" src="assets/sky-kings-logo.png" alt="Sky Kings" />
     <h1>Torneos Sky Kings MCGG</h1>
+    <p class="muted" style="margin-bottom: 1.5rem">Bienvenido, <span class="user-info">Usuario</span> (<span class="user-role">Jugador</span>)</p>
     <div class="landing__btns">
       <a class="btn btn--primary" href="torneo.html">Ver torneos</a>
       <a class="btn btn--ghost" href="equipos.html">Equipos (Unirse/Inscribir)</a>
       <a class="btn btn--ghost" href="registro-equipos.html">Crear equipo</a>
-      <a class="btn btn--ghost" href="login.html">Login / Mi cuenta</a>
+      <a class="btn btn--ghost" href="admin.html" id="adminLink" hidden>Panel Admin</a>
     </div>
     <p class="muted" style="margin-top: 2rem; max-width: 32ch">
       Sistema en línea — los datos se guardan en la nube con actualizaciones en tiempo real.
     </p>
   </main>
+
+  <script src="auth.js"></script>
+  <script>
+    // Mostrar enlace de admin si es administrador
+    if (window.Auth && window.Auth.isAdmin()) {
+      const adminLink = document.getElementById('adminLink');
+      if (adminLink) adminLink.hidden = false;
+    }
+  </script>
 </body>
 </html>

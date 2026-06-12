@@ -8,13 +8,14 @@
   <title>Administrador — Sky Kings</title>
   <link rel="stylesheet" href="styles-simple.css" />
 </head>
-<body>
+<body data-require-admin="true">
   <header class="topbar">
     <a class="topbar__brand" href="index.html" aria-label="Sky Kings - Inicio">
       <img class="brand-logo" src="assets/sky-kings-logo.png" alt="" />
       <span class="brand-word">Sky <span>Kings</span></span>
     </a>
     <nav class="topbar__nav">
+      <span class="topbar__link user-info">Admin</span>
       <a class="topbar__link" href="torneo.html">Torneos</a>
       <a class="topbar__link" href="registro-equipos.html">Registro</a>
       <button type="button" class="topbar__link" id="btnLogout">Salir</button>
@@ -113,6 +114,7 @@
     </div>
   </div>
 
+  <script src="auth.js"></script>
   <script src="api-client.js"></script>
   <script src="tournament.js"></script>
   <script src="admin.js"></script>
